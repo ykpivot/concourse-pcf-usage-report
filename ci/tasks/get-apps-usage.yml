@@ -9,8 +9,9 @@ image_resource:
 
 inputs:
   - name: pipeline-scripts
-outputs:
   - name: orgs-list
+outputs:
+  - name: spaces-usage
 
 run:
-  path: pipeline-scripts/scripts/get-all-orgs.sh
+  path: pipeline-scripts/scripts/get-apps-usage.sh

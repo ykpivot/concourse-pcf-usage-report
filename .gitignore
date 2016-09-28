@@ -4,3 +4,4 @@ id_rsa.pub
 fly
 .DS*
 node_modules/
+json-test/
