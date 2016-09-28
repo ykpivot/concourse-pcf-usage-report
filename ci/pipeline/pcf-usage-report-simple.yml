@@ -1,0 +1,60 @@
+resources:
+- name: pipeline-scripts
+  type: git
+  source:
+    branch: master
+    uri: {{git-project-url}}
+# - name: trigger-daily-after-1am
+#   type: time
+#   source:
+#     start: 1:00 AM -0500
+#     stop: 3:00 AM -0500
+
+jobs:
+- name: get-all-orgs
+  serial: true
+  public: true
+  plan:
+  - get: pipeline-scripts
+    trigger: false
+  # - get: trigger-daily-after-1am
+  #   trigger: true
+  - task: get-list-of-all-orgs
+    # file: pipeline-scripts/get-all-orgs.yml
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfservices/docker-concourse-cf-tools
+          tag: "latest"
+
+      inputs:
+        - name: pipeline-scripts
+      outputs:
+        - name: outputdir
+      run:
+        # path: pipeline-scripts/scripts/get-all-orgs.sh
+        path: sh
+        args:
+        - -exc
+        - |
+          cf --version
+          env
+    params:
+      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+      SYS_ADMIN_USER: {{pcf-sys-admin-user}}
+      SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+
+# - name: backup-elastic-runtime
+#   serial: true
+#   public: true
+#   plan:
+#   - get: pcf-backup-scripts
+#     trigger: false
+#   - get: trigger-daily-after-1am
+#     trigger: true
+#     passed:
+#       - backup-opsman
+#   - task: backup-elastic-runtime
+#     file: pcf-backup-scripts/pcf-cfops-backup/ci/tasks/cfops_backup.yml
