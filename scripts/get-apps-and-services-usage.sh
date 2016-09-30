@@ -11,7 +11,8 @@ export DATE_FROM="2016-09-01"
 export DATE_TO="2016-09-27"
 
 export ORGS_FILE=./orgs-list/pcf-orgs.json
-export OUTPUT_DIR_NAME=spaces-usage
+export OUTPUT_DIR_NAME=orgs-usage
+export OUTPUT_ORGS_USAGE_FILE=$OUTPUT_DIR_NAME/pcf-orgs-usage.json
 
 # find .
 # echo "Current directory: $PWD"
@@ -64,6 +65,8 @@ jq -r ".resources[] | .entity.name" $ORGS_FILE | while read key ; do
 
 done
 
-cat $ORGS_FILE
+cp $ORGS_FILE $OUTPUT_ORGS_USAGE_FILE
+
+cat $OUTPUT_ORGS_USAGE_FILE
 
 # copy produced orgs json to file repository

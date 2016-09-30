@@ -9,12 +9,12 @@ image_resource:
 
 inputs:
   - name: pipeline-scripts
-  - name: orgs-list
-outputs:
   - name: orgs-usage
+outputs:
+  - name: orgs-usage-consolidated
 
 run:
-  path: pipeline-scripts/scripts/get-apps-and-services-usage.sh
+  path: pipeline-scripts/scripts/consolidate-usage-data.sh
 
 # params:
 #   PCF_API_ENDPOINT:

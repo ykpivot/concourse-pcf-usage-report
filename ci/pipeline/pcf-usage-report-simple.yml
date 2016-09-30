@@ -19,7 +19,7 @@ jobs:
     trigger: false
   # - get: trigger-daily-after-1am
   #   trigger: true
-  - task: get-list-of-all-orgs
+  - task: get-orgs-and-quotas
     file: pipeline-scripts/ci/tasks/get-orgs-and-quotas.yml
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
@@ -27,13 +27,17 @@ jobs:
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
 
-  - task: get-app-usage-for-each-org
+  - task: get-apps-and-services-usage
     file: pipeline-scripts/ci/tasks/get-apps-and-services-usage.yml
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+
+  - task: consolidate-usage-data
+    file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
+
 
   # - task: get-service-usage-for-each-org
   #   file: pipeline-scripts/ci/tasks/get-services-usage.yml
