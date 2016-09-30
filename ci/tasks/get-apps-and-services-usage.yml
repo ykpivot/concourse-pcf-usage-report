@@ -9,8 +9,15 @@ image_resource:
 
 inputs:
   - name: pipeline-scripts
-outputs:
   - name: orgs-list
+outputs:
+  - name: spaces-usage
 
 run:
-  path: pipeline-scripts/scripts/get-all-orgs.sh
+  path: pipeline-scripts/scripts/get-apps-and-services-usage.sh
+
+params:
+  PCF_API_ENDPOINT:
+  PCF_APPS_DOMAIN:
+  SYS_ADMIN_USER:
+  SYS_ADMIN_PASSWORD:

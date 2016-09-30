@@ -20,20 +20,29 @@ jobs:
   # - get: trigger-daily-after-1am
   #   trigger: true
   - task: get-list-of-all-orgs
-    file: pipeline-scripts/ci/tasks/get-all-orgs.yml
+    file: pipeline-scripts/ci/tasks/get-orgs-and-quotas.yml
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
 
-  - task: get-app-usage-for-each-orgs
-    file: pipeline-scripts/ci/tasks/get-apps-usage.yml
+  - task: get-app-usage-for-each-org
+    file: pipeline-scripts/ci/tasks/get-apps-and-services-usage.yml
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+
+  # - task: get-service-usage-for-each-org
+  #   file: pipeline-scripts/ci/tasks/get-services-usage.yml
+  #   params:
+  #     PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+  #     PCF_APPS_DOMAIN: {{pcf-apps-domain}}
+  #     SYS_ADMIN_USER: {{pcf-sys-admin-user}}
+  #     SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+
 # - name: backup-elastic-runtime
 #   serial: true
 #   public: true
