@@ -7,8 +7,8 @@ cf api $PCF_API_ENDPOINT --skip-ssl-validation
 
 cf login -u $SYS_ADMIN_USER -p $SYS_ADMIN_PASSWORD -o "system" -s "system"
 
-export DATE_FROM="2016-09-01"
-export DATE_TO="2016-09-27"
+export DATE_FROM=$USAGE_START_DATE
+export DATE_TO=$USAGE_END_DATE
 
 export ORGS_FILE=./orgs-list/pcf-orgs.json
 export OUTPUT_DIR_NAME=orgs-usage

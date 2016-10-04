@@ -26,6 +26,8 @@ jobs:
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+      USAGE_START_DATE: 2016-09-01
+      USAGE_END_DATE: 2016-09-27
 
   - task: get-apps-and-services-usage
     file: pipeline-scripts/ci/tasks/get-apps-and-services-usage.yml
@@ -34,6 +36,8 @@ jobs:
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+      USAGE_START_DATE: 2016-09-01
+      USAGE_END_DATE: 2016-09-27
 
   - task: consolidate-usage-data
     file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
