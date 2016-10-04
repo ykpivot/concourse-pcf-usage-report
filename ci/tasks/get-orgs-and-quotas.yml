@@ -21,10 +21,10 @@ run:
     node pipeline-scripts/scripts/get-orgs-and-quotas.js
     find .
 
-params:
-  PCF_API_ENDPOINT:
-  PCF_APPS_DOMAIN:
-  SYS_ADMIN_USER:
-  SYS_ADMIN_PASSWORD:
-  USAGE_START_DATE:
-  USAGE_END_DATE:
+# params:
+#   PCF_API_ENDPOINT:
+#   PCF_APPS_DOMAIN:
+#   SYS_ADMIN_USER:
+#   SYS_ADMIN_PASSWORD:
+#   USAGE_START_DATE:
+#   USAGE_END_DATE:

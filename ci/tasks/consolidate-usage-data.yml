@@ -14,7 +14,12 @@ outputs:
   - name: orgs-usage-consolidated
 
 run:
-  path: pipeline-scripts/scripts/consolidate-usage-data.sh
+  path: sh
+  args:
+  - -exc
+  - |
+    node ./pipeline-scripts/scripts/consolidate-usage-data.js ./orgs-usage/pcf-orgs-usage.json ./orgs-usage-consolidated/pcf-usage-consolidated.json
+    find .
 
 # params:
 #   PCF_API_ENDPOINT:

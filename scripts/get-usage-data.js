@@ -1,6 +1,6 @@
 var fs = require('fs');
-
 var exec = require('child_process').exec;
+
 var orgsUsageObject={};
 
 // console.log("Env: process.env.PCF_API_ENDPOINT="+process.env.PCF_API_ENDPOINT);
@@ -11,9 +11,7 @@ var orgsUsageObject={};
 // console.log("Env: process.env.USAGE_END_DATE="+process.env.USAGE_END_DATE);
 
 var OUTPUT_DIR_NAME="orgs-usage";
-// var ORGS_FILE="./"+OUTPUT_DIR_NAME+"/pcf-orgs.json";
 var ORGS_USAGE_FILE="./"+OUTPUT_DIR_NAME+"/pcf-orgs-usage.json";
-
 
 init();
 
@@ -29,6 +27,15 @@ function cfLogin() {
         cfGetOrgs();
     }
   });
+}
+
+function execError(fname,errorobj,stderrobj) {
+  if (errorobj !== null) {
+    console.log(fname+' exec error: ' + errorobj);
+    console.log(fname+' stderr: ' + stderrobj);
+    return true;
+  }
+  return false;
 }
 
 function cfGetOrgs() {
@@ -206,16 +213,11 @@ function doNextOrganization(orgIndex) {
   if (++orgIndex<orgsUsageObject.resources.length){
     cfGetOrgUsage(orgIndex);
   } else {
-    fs.writeFile(ORGS_USAGE_FILE, JSON.stringify(orgsUsageObject, null, 2) , 'utf-8');
-    // console.log("OrgsObject="+JSON.stringify(orgsUsageObject, null, 2));
+    finalize();
   }
 }
 
-function execError(fname,errorobj,stderrobj) {
-  if (errorobj !== null) {
-    console.log(fname+' exec error: ' + errorobj);
-    console.log(fname+' stderr: ' + stderrobj);
-    return true;
-  }
-  return false;
+function finalize() {
+  fs.writeFile(ORGS_USAGE_FILE, JSON.stringify(orgsUsageObject, null, 2) , 'utf-8');
+  // console.log("OrgsObject="+JSON.stringify(orgsUsageObject, null, 2));
 }
