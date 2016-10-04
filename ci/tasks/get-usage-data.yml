@@ -13,12 +13,11 @@ outputs:
   - name: orgs-usage
 
 run:
-  # path: pipeline-scripts/scripts/get-orgs-and-quotas.sh
   path: sh
   args:
   - -exc
   - |
-    node pipeline-scripts/scripts/get-orgs-and-quotas.js
+    node pipeline-scripts/scripts/get-usage-data.js
     find .
 
 # params:
