@@ -21,8 +21,7 @@ for (var item in orgsUsageObject.resources) {
     var orgObject = {};
     orgObject.name=current_org_object.entity.name;
     orgObject.guid=current_org_object.metadata.guid;
-    orgObject.quota_plan={};
-    orgObject.quota_from_spaces={};
+    // orgObject.quota_from_spaces={};
     orgObject.total_app_instance_count=0;
     orgObject.total_app_memory_used_in_mb=0;
     orgObject.total_disk_quota_in_mb=0;
@@ -31,6 +30,14 @@ for (var item in orgsUsageObject.resources) {
 
     // iterate through spaces from org object
     orgObject.spaces=[];
+
+    // get org quota info
+    orgObject.quota_plan={};
+    var quotaDefObject = findQuotaDefinitionObject(current_org_object.entity.quota_definition_guid,orgsUsageObject.quota_definitions);
+    if (quotaDefObject!=null) {
+       orgObject.quota_plan = quotaDefObject.entity;
+       orgObject.quota_plan.guid=current_org_object.entity.quota_definition_guid
+    }
 
     for (var spaceObjCount in current_org_object.spaces.resources) {
       var current_space_object = current_org_object.spaces.resources[spaceObjCount];
@@ -144,9 +151,9 @@ for (var item in orgsUsageObject.resources) {
 
       // aggregate service usage from space object into parent org object
       for (var serviceObjCount in newSpaceObject.service_usages) {
-        console.log("serviceObjCount="+serviceObjCount);
+        // console.log("serviceObjCount="+serviceObjCount);
         var current_svcusage_object = newSpaceObject.service_usages[serviceObjCount];
-        console.log("current_svcusage_object="+current_svcusage_object.service_name);
+        // console.log("current_svcusage_object="+current_svcusage_object.service_name);
         // check if service + service plan already exists
         var svcOrgPosition=-1;
         for (var serviceOrgCount in orgObject.service_usages) {
@@ -156,14 +163,14 @@ for (var item in orgsUsageObject.resources) {
                 break;
           }
         }
-        console.log("svcOrgPosition="+svcOrgPosition);
+        // console.log("svcOrgPosition="+svcOrgPosition);
         if (svcOrgPosition != -1) {
           orgObject.service_usages[svcOrgPosition].instances += current_svcusage_object.instances
           orgObject.service_usages[svcOrgPosition].duration_in_seconds += current_svcusage_object.duration_in_seconds
         } else {
           orgObject.service_usages.push(current_svcusage_object);
         }
-        console.log("Updated services usage obj: "+JSON.stringify(orgObject.service_usages, null, 2));
+        // console.log("Updated services usage obj: "+JSON.stringify(orgObject.service_usages, null, 2));
       }
 
       // aggregate buildpacks usage from space object into parent org object
@@ -185,7 +192,7 @@ for (var item in orgsUsageObject.resources) {
     outputConsolidatedObject.resources.push(orgObject);
 
 }
-console.log("Writing updated spaces object back to "+process.argv[3])
+// console.log("Writing updated spaces object back to "+process.argv[3])
 fs.writeFile(process.argv[3], JSON.stringify(outputConsolidatedObject, null, 2) , 'utf-8');
 
 function findAppObject(appName, applicationsObject) {
@@ -223,4 +230,15 @@ function findBuildpackObject(buildpackGuid, buildpacksObject) {
        }
    }
    return returnBpObject;
+}
+
+function findQuotaDefinitionObject(quotaGuid, quotaDefinitionsObject) {
+   var returnQDObject = null;
+
+   for (var count in quotaDefinitionsObject.resources) {
+       if (quotaDefinitionsObject.resources[count].metadata.guid == quotaGuid) {
+         returnQDObject=quotaDefinitionsObject.resources[count];
+       }
+   }
+   return returnQDObject;
 }
