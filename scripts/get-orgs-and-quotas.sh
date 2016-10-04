@@ -16,7 +16,6 @@ cf curl /v2/organizations > $ORGS_FILE
 echo "Adding start and end dates of report to json object"
 node ./pipeline-scripts/scripts/mergeFieldIntoObject.js "start_date" $USAGE_START_DATE $ORGS_FILE
 node ./pipeline-scripts/scripts/mergeFieldIntoObject.js "end_date" $USAGE_END_DATE $ORGS_FILE
-rm $ORGS_FILE
 
 echo "Get list of all quota definitions using CF API /v2/quota_definitions"
 export QUOTAS_DEFINITION_FILE=./$OUTPUT_DIR_NAME/service_plans.json
