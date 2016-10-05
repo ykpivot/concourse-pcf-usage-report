@@ -7,11 +7,12 @@ var orgsUsageObject={};
 // console.log("Env: process.env.PCF_APPS_DOMAIN="+process.env.PCF_APPS_DOMAIN);
 // console.log("Env: process.env.SYS_ADMIN_USER="+process.env.SYS_ADMIN_USER);
 // console.log("Env: process.env.SYS_ADMIN_PASSWORD="+process.env.SYS_ADMIN_PASSWORD);
-// console.log("Env: process.env.USAGE_START_DATE="+process.env.USAGE_START_DATE);
-// console.log("Env: process.env.USAGE_END_DATE="+process.env.USAGE_END_DATE);
 
 var OUTPUT_DIR_NAME="orgs-usage";
 var ORGS_USAGE_FILE="./"+OUTPUT_DIR_NAME+"/pcf-orgs-usage.json";
+
+var reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
+
 
 init();
 
@@ -44,8 +45,8 @@ function cfGetOrgs() {
   exec(cmd_getorgs, function(error, stdout, stderr) {
     if (! execError("cfGetOrgs",error,stderr)) {
       orgsUsageObject=JSON.parse(stdout, 'utf8');
-      orgsUsageObject.start_date=process.env.USAGE_START_DATE;
-      orgsUsageObject.end_date=process.env.USAGE_END_DATE;
+      orgsUsageObject.start_date=reportTimeRangeObject.USAGE_START_DATE;
+      orgsUsageObject.end_date=reportTimeRangeObject.USAGE_END_DATE;
       cfGetQuotas();
     }
   });
@@ -128,7 +129,7 @@ function cfGetOrgSpaces(orgIndex,orgGuid) {
 
 function cfGetOrgServicesUsage(orgIndex,orgGuid) {
   console.log("Getting Services usage for the org")
-  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/service_usages?start='+process.env.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/service_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
   exec(cf_cmd, function(error, stdout, stderr) {
     if (! execError("cfGetOrgServicesUsage",error,stderr)) {
       var parsedObject=JSON.parse(stdout, 'utf8');
@@ -160,7 +161,7 @@ function mergeSpaceUsageInfo(servicesUsageObject,spacesDetailsObject) {
 
 function cfGetOrgApplicationsUsage(orgIndex,orgGuid) {
   console.log("Getting Applications usage for the org")
-  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/app_usages?start='+process.env.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/app_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
   exec(cf_cmd, function(error, stdout, stderr) {
     if (! execError("cfGetOrgApplicationsUsage",error,stderr)) {
       var parsedObject=JSON.parse(stdout, 'utf8');

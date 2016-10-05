@@ -4,42 +4,72 @@ resources:
   source:
     branch: master
     uri: {{git-project-url}}
-# - name: trigger-daily-after-1am
+
+# - name: trigger-monthly
 #   type: time
 #   source:
+#     interval: 744h
+#     days: [Wednesday]
 #     start: 1:00 AM -0500
 #     stop: 3:00 AM -0500
 
 jobs:
-- name: retrieve-and-process-usage-data
+- name: retrieve-and-process-pcf-usage-data
   serial: true
   public: true
   plan:
   - get: pipeline-scripts
     trigger: false
-  # - get: trigger-daily-after-1am
+  # - get: trigger-trigger-monthly
   #   trigger: true
+  - task: define-report-time-range
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pivotalservices/pcf-usage-tools
+          tag: "latest"
+      outputs:
+        - name: report-time-range
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          #
+          # Sample 1: set time range as last month's start and end dates
+          #
+          date1=$(date --date="-1 month" +"%Y-%m-01")
+          date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+          #
+          # Sample 2: set time range as current month's start to current date
+          #
+          # date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
+          # date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+          cat  ./report-time-range/report-time-range.json
+
   - task: get-usage-data
-    file: pipeline-scripts/ci/tasks/get-orgs-and-quotas.yml
+    file: pipeline-scripts/ci/tasks/get-usage-data.yml
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
       PCF_APPS_DOMAIN: {{pcf-apps-domain}}
       SYS_ADMIN_USER: {{pcf-sys-admin-user}}
       SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
-      USAGE_START_DATE: 2016-09-01
-      USAGE_END_DATE: 2016-09-27
 
   - task: consolidate-usage-data
     file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
 
+  - task: email-usage-file
+    file: pipeline-scripts/ci/tasks/email-usage-file.yml
+    params:
+      SMTP_HOST: {{smtp-host}}
+      SMTP_PORT: {{smtp-port}}
+      SMTP_USERNAME: {{smtp-username}}
+      SMTP_PASSWORD: {{smtp-password}}
+      EMAIL_FROM: {{email-to}}
+      EMAIL_TO: {{email-from}}
 
-  # - task: get-service-usage-for-each-org
-  #   file: pipeline-scripts/ci/tasks/get-services-usage.yml
-  #   params:
-  #     PCF_API_ENDPOINT: {{pcf-api-endpoint}}
-  #     PCF_APPS_DOMAIN: {{pcf-apps-domain}}
-  #     SYS_ADMIN_USER: {{pcf-sys-admin-user}}
-  #     SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
 
 # - name: backup-elastic-runtime
 #   serial: true

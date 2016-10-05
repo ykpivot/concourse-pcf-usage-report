@@ -10,21 +10,20 @@ image_resource:
 inputs:
   - name: pipeline-scripts
   - name: report-time-range
-outputs:
-  - name: orgs-usage
+  - name: orgs-usage-consolidated
 
 run:
   path: sh
   args:
   - -exc
   - |
-    node pipeline-scripts/scripts/get-usage-data.js
-    find .
+    npm install nodemailer
+    node pipeline-scripts/scripts/email-usage-file.js
 
 # params:
-#   PCF_API_ENDPOINT:
-#   PCF_APPS_DOMAIN:
-#   SYS_ADMIN_USER:
-#   SYS_ADMIN_PASSWORD:
-#   USAGE_START_DATE:
-#   USAGE_END_DATE:
+#   SMTP_HOST:
+#   SMTP_PORT:
+#   SMTP_USERNAME:
+#   SMTP_PASSWORD:
+#   EMAIL_FROM:
+#   EMAIL_TO:

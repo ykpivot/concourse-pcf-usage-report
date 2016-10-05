@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
   - name: pipeline-scripts
+  - name: report-time-range  
   - name: orgs-usage
 outputs:
   - name: orgs-usage-consolidated

@@ -2,12 +2,14 @@ var fs = require('fs');
 
 var orgsUsageObject = {};
 var outputConsolidatedObject = {};
+var inputFileName=process.argv[2];
+var outputFileName=process.argv[3];
 
 init();
 
 function init() {
-  console.log("Consolidating Orgs Usage object ["+process.argv[2]+"] info into object "+process.argv[3])
-  readUsageDataFile(process.argv[2]);
+  console.log("Consolidating Orgs Usage object from ["+inputFileName+"] into : "+outputFileName)
+  readUsageDataFile(inputFileName);
   initializeOutputObject();
   processAllOrganizations();
   saveConsolidatedObject();
