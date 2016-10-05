@@ -9,8 +9,6 @@ image_resource:
 
 inputs:
   - name: pipeline-scripts
-  - name: report-time-range
-  - name: orgs-usage-consolidated
   - name: email-text
 
 run:
@@ -18,8 +16,9 @@ run:
   args:
   - -exc
   - |
+    env
     npm install nodemailer
-    node pipeline-scripts/scripts/email-usage-file.js
+    node pipeline-scripts/scripts/send-email.js
 
 # params:
 #   SMTP_HOST:
@@ -28,3 +27,5 @@ run:
 #   SMTP_PASSWORD:
 #   EMAIL_FROM:
 #   EMAIL_TO:
+#   EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
+#   EMAIL_TEXT_FILE: ./email-text/email-text-success.txt

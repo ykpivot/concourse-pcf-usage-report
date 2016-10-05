@@ -4,6 +4,10 @@ resource_types:
   type: docker-image
   source:
     repository: cftoolsmiths/cron-test
+- name: email
+  type: docker-image
+  source:
+    repository: pcfseceng/email-resource
 
 resources:
 - name: pipeline-scripts
@@ -19,6 +23,16 @@ resources:
     secret_access_key: {{s3-secret-access-key}}
     regexp: {{s3-directory-path}}
     region_name: us-west-1
+- name: email-alert
+  type: email
+  source:
+    smtp:
+      host: {{smtp-host}}
+      port: "465" # {{smtp-port}}
+      username: {{smtp-username}}
+      password: {{smtp-password}}
+    from: lmpsilva73@gmail.com
+    to: ["lsilva@pivotal.io"]
 - name: monthly-trigger
   type: cron-resource
   source:
@@ -31,57 +45,116 @@ jobs:
   serial: true
   public: true
   plan:
-  - get: pipeline-scripts
-    trigger: false
-  # - get: file-repository
-  # - get: monthly-trigger
-  #   trigger: true
-  - task: define-report-time-range
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pivotalservices/pcf-usage-tools
-          tag: "latest"
-      outputs:
-        - name: report-time-range
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          #
-          # Sample 1: set time range as last month's start and end dates
-          #
-          # date1=$(date --date="-1 month" +"%Y-%m-01")
-          # date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
-          #
-          # Sample 2: set time range as current month's start to current date
-          #
-          date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
-          date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
-          #
-          sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
-          cat  ./report-time-range/report-time-range.json
+  - do:
+    - get: pipeline-scripts
+      trigger: false
+    # - get: file-repository
+    # - get: monthly-trigger
+    #   trigger: true
+    - task: define-report-time-range
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotalservices/pcf-usage-tools
+            tag: "latest"
+        outputs:
+          - name: report-time-range
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            #
+            # Sample 1: set time range as last month's start and end dates
+            #
+            # date1=$(date --date="-1 month" +"%Y-%m-01")
+            # date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+            #
+            # Sample 2: set time range as current month's start to current date
+            #
+            date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
+            date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+            #
+            sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
+            cat  ./report-time-range/report-time-range.json
 
-  - task: get-usage-data
-    file: pipeline-scripts/ci/tasks/get-usage-data.yml
-    params:
-      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
-      PCF_APPS_DOMAIN: {{pcf-apps-domain}}
-      SYS_ADMIN_USER: {{pcf-sys-admin-user}}
-      SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+    - task: prep-notification-email-text
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotalservices/pcf-usage-tools
+            tag: "latest"
+        inputs:
+          - name: report-time-range
+        outputs:
+          - name: email-text
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            echo "Success of PCF usage report build" >  ./email-text/email-text-success.txt
+            echo "Failure of PCF usage report build" >  ./email-text/email-text-failure.txt
 
-  - task: consolidate-usage-data
-    file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
-    params:
-      PCF_DEPLOY_NAME: {{pcf-deploy-name}}
+    - task: get-usage-data
+      file: pipeline-scripts/ci/tasks/get-usage-data.yml
+      params:
+        PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+        PCF_APPS_DOMAIN: {{pcf-apps-domain}}
+        SYS_ADMIN_USER: {{pcf-sys-admin-user}}
+        SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
 
-  - put: file-repository
-    params:
-      file: ./orgs-usage-consolidated/*.json
-      acl: public-read
+    - task: consolidate-usage-data
+      file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
+      params:
+        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
+
+    - put: file-repository
+      params:
+        file: ./orgs-usage-consolidated/*.json
+        acl: public-read
+
+    - task: email-notification-success
+      file: pipeline-scripts/ci/tasks/send-email.yml
+      params:
+        SMTP_HOST: {{smtp-host}}
+        SMTP_PORT: {{smtp-port}}
+        SMTP_USERNAME: {{smtp-username}}
+        SMTP_PASSWORD: {{smtp-password}}
+        EMAIL_FROM: {{email-from}}
+        EMAIL_TO: {{email-to}}
+        EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
+        EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
+        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+
+    on_failure:
+      task: email-notification-failure
+      file: pipeline-scripts/ci/tasks/send-email.yml
+      params:
+        SMTP_HOST: {{smtp-host}}
+        SMTP_PORT: {{smtp-port}}
+        SMTP_USERNAME: {{smtp-username}}
+        SMTP_PASSWORD: {{smtp-password}}
+        EMAIL_FROM: {{email-from}}
+        EMAIL_TO: {{email-to}}
+        EMAIL_SUBJECT_FILE: ./email-text/email-text-failure.txt
+        EMAIL_TEXT_FILE: ./email-text/email-text-failure.txt
+        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+
+    # - task: email-alert-success
+    #   file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
+    #   params:
+    #     subject: ./email-text/email-text-success.txt
+    #     body: ./email-text/email-text-success.txt
+    # on_success:
+    #   task: email-alert-success
+    #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
+    # on_failure:
+    #   put: email-alert-success
 
   # - task: email-usage-file
   #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
