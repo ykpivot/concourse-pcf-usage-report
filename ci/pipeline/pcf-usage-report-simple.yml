@@ -4,10 +4,6 @@ resource_types:
   type: docker-image
   source:
     repository: cftoolsmiths/cron-test
-- name: email
-  type: docker-image
-  source:
-    repository: pcfseceng/email-resource
 
 resources:
 - name: pipeline-scripts
@@ -23,16 +19,6 @@ resources:
     secret_access_key: {{s3-secret-access-key}}
     regexp: {{s3-directory-path}}
     region_name: us-west-1
-- name: email-alert
-  type: email
-  source:
-    smtp:
-      host: {{smtp-host}}
-      port: "465" # {{smtp-port}}
-      username: {{smtp-username}}
-      password: {{smtp-password}}
-    from: lmpsilva73@gmail.com
-    to: ["lsilva@pivotal.io"]
 - name: monthly-trigger
   type: cron-resource
   source:
@@ -69,13 +55,13 @@ jobs:
             #
             # Sample 1: set time range as last month's start and end dates
             #
-            # date1=$(date --date="-1 month" +"%Y-%m-01")
-            # date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+            date1=$(date --date="-1 month" +"%Y-%m-01")
+            date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
             #
             # Sample 2: set time range as current month's start to current date
             #
-            date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
-            date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+            # date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
+            # date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
             #
             sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
             cat  ./report-time-range/report-time-range.json
@@ -97,8 +83,7 @@ jobs:
           args:
           - -exc
           - |
-            echo "Success of PCF usage report build" >  ./email-text/email-text-success.txt
-            echo "Failure of PCF usage report build" >  ./email-text/email-text-failure.txt
+            echo "Build failure while generating PCF usage report." >  ./email-text/email-text-failure.txt
 
     - task: get-usage-data
       file: pipeline-scripts/ci/tasks/get-usage-data.yml
@@ -118,19 +103,6 @@ jobs:
         file: ./orgs-usage-consolidated/*.json
         acl: public-read
 
-    - task: email-notification-success
-      file: pipeline-scripts/ci/tasks/send-email.yml
-      params:
-        SMTP_HOST: {{smtp-host}}
-        SMTP_PORT: {{smtp-port}}
-        SMTP_USERNAME: {{smtp-username}}
-        SMTP_PASSWORD: {{smtp-password}}
-        EMAIL_FROM: {{email-from}}
-        EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
-        EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
-        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
-
     on_failure:
       task: email-notification-failure
       file: pipeline-scripts/ci/tasks/send-email.yml
@@ -145,37 +117,78 @@ jobs:
         EMAIL_TEXT_FILE: ./email-text/email-text-failure.txt
         # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
 
-    # - task: email-alert-success
-    #   file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
-    #   params:
-    #     subject: ./email-text/email-text-success.txt
-    #     body: ./email-text/email-text-success.txt
-    # on_success:
-    #   task: email-alert-success
-    #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
-    # on_failure:
-    #   put: email-alert-success
+- name: feed-report-into-billing-system
+  serial: true
+  public: true
+  plan:
+  - do:
+    - get: pipeline-scripts
+      trigger: false
+    - get: file-repository
+      trigger: true
+      passed:
+      - retrieve-and-process-pcf-usage-data
+    - task: prep-notification-email-text
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotalservices/pcf-usage-tools
+            tag: "latest"
+        outputs:
+          - name: email-text
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            echo "Success of PCF usage report build" >  ./email-text/email-text-success.txt
+            echo "Build failure while feeding PCF usage report into billing system" >  ./email-text/email-text-failure2.txt
 
-  # - task: email-usage-file
-  #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
-  #   params:
-  #     PCF_DEPLOY_NAME: {{pcf-deploy-name}}
-  #     SMTP_HOST: {{smtp-host}}
-  #     SMTP_PORT: {{smtp-port}}
-  #     SMTP_USERNAME: {{smtp-username}}
-  #     SMTP_PASSWORD: {{smtp-password}}
-  #     EMAIL_FROM: {{email-from}}
-  #     EMAIL_TO: {{email-to}}
+    - task: feed-report-data-into-billing-system
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotalservices/pcf-usage-tools
+            tag: "latest"
+        inputs:
+          - name: pipeline-scripts
+          - name: file-repository
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            echo "This is a place holder for the code to read the report file from the file repository and feed it to a billing system"
+            ls -la file-repository
+            echo "Report file URL:"
+            cat ./file-repository/url
 
-# - name: backup-elastic-runtime
-#   serial: true
-#   public: true
-#   plan:
-#   - get: pcf-backup-scripts
-#     trigger: false
-#   - get: trigger-daily-after-1am
-#     trigger: true
-#     passed:
-#       - backup-opsman
-#   - task: backup-elastic-runtime
-#     file: pcf-backup-scripts/pcf-cfops-backup/ci/tasks/cfops_backup.yml
+    - task: email-notification-success
+      file: pipeline-scripts/ci/tasks/send-email.yml
+      params:
+        SMTP_HOST: {{smtp-host}}
+        SMTP_PORT: {{smtp-port}}
+        SMTP_USERNAME: {{smtp-username}}
+        SMTP_PASSWORD: {{smtp-password}}
+        EMAIL_FROM: {{email-from}}
+        EMAIL_TO: {{email-to}}
+        EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
+        EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
+        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+    on_failure:
+      task: email-notification-failure
+      file: pipeline-scripts/ci/tasks/send-email.yml
+      params:
+        SMTP_HOST: {{smtp-host}}
+        SMTP_PORT: {{smtp-port}}
+        SMTP_USERNAME: {{smtp-username}}
+        SMTP_PASSWORD: {{smtp-password}}
+        EMAIL_FROM: {{email-from}}
+        EMAIL_TO: {{email-to}}
+        EMAIL_SUBJECT_FILE: ./email-text/email-text-failure2.txt
+        EMAIL_TEXT_FILE: ./email-text/email-text-failure2.txt
+        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
