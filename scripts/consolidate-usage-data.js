@@ -23,6 +23,7 @@ function initializeOutputObject() {
   outputConsolidatedObject.resources=[];
   outputConsolidatedObject.start_date=orgsUsageObject.start_date;
   outputConsolidatedObject.end_date=orgsUsageObject.end_date;
+  outputConsolidatedObject.pcf_api_endpoint=process.env.PCF_API_ENDPOINT;
 }
 
 function processAllOrganizations() {
@@ -68,8 +69,8 @@ function processOrganization(item) {
     console.log("   Space: "+current_space_object.entity.name);
     newSpaceObject.guid=current_space_object.metadata.guid;
     newSpaceObject.name=current_space_object.entity.name;
-    newSpaceObject.quota_plan={};
-    newSpaceObject.quota_from_apps={};
+    // newSpaceObject.quota_plan={};
+    // newSpaceObject.quota_from_apps={};
 
     newSpaceObject.total_app_instance_count=0;
     newSpaceObject.total_app_memory_used_in_mb=0;

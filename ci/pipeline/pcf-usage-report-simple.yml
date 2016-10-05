@@ -61,10 +61,13 @@ jobs:
 
   - task: consolidate-usage-data
     file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
+    params:
+      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
 
   - task: email-usage-file
     file: pipeline-scripts/ci/tasks/email-usage-file.yml
     params:
+      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
       SMTP_HOST: {{smtp-host}}
       SMTP_PORT: {{smtp-port}}
       SMTP_USERNAME: {{smtp-username}}
