@@ -19,7 +19,6 @@ run:
   - -exc
   - |
     node pipeline-scripts/scripts/get-usage-data.js
-    find .
 
 # params:
 #   PCF_API_ENDPOINT:

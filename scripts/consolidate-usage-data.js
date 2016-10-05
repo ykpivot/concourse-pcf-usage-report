@@ -2,8 +2,9 @@ var fs = require('fs');
 
 var orgsUsageObject = {};
 var outputConsolidatedObject = {};
-var inputFileName=process.argv[2];
-var outputFileName=process.argv[3];
+var reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
+var inputFileName="./orgs-usage/pcf-orgs-usage.json";
+var outputFileName="./orgs-usage-consolidated/pcf-usage-from-"+reportTimeRangeObject.USAGE_START_DATE+"-to-"+reportTimeRangeObject.USAGE_END_DATE+"_"+Math.floor(Date.now() / 1000)+".json";
 
 init();
 
@@ -34,7 +35,8 @@ function processAllOrganizations() {
 }
 
 function saveConsolidatedObject() {
-  fs.writeFile(process.argv[3], JSON.stringify(outputConsolidatedObject, null, 2) , 'utf-8');
+  fs.writeFile(outputFileName, JSON.stringify(outputConsolidatedObject, null, 2) , 'utf-8');
+  console.log("Resulting usage report object: "+JSON.stringify(outputConsolidatedObject, null, 2));
 }
 
 function processOrganization(item) {

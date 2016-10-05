@@ -1,17 +1,30 @@
+---
+resource_types:
+- name: cron-resource
+  type: docker-image
+  source:
+    repository: cftoolsmiths/cron-test
+
 resources:
 - name: pipeline-scripts
   type: git
   source:
     branch: master
     uri: {{git-project-url}}
-
-# - name: trigger-monthly
-#   type: time
-#   source:
-#     interval: 744h
-#     days: [Wednesday]
-#     start: 1:00 AM -0500
-#     stop: 3:00 AM -0500
+- name: file-repo
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    regexp: {{s3-directory-path}}
+    region_name: us-west-1
+- name: monthly-trigger
+  type: cron-resource
+  source:
+    location: "America/New_York"
+    expression: "0 6 1 * *"
+    # trigger on the first day of each month at 6:00am ET
 
 jobs:
 - name: retrieve-and-process-pcf-usage-data
@@ -20,7 +33,8 @@ jobs:
   plan:
   - get: pipeline-scripts
     trigger: false
-  # - get: trigger-trigger-monthly
+  - get: file-repo
+  # - get: monthly-trigger
   #   trigger: true
   - task: define-report-time-range
     config:
@@ -40,13 +54,13 @@ jobs:
           #
           # Sample 1: set time range as last month's start and end dates
           #
-          date1=$(date --date="-1 month" +"%Y-%m-01")
-          date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+          # date1=$(date --date="-1 month" +"%Y-%m-01")
+          # date -d "$(date +%Y-%m-01) -1 day" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
           #
           # Sample 2: set time range as current month's start to current date
           #
-          # date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
-          # date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+          date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
+          date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
           #
           sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
           cat  ./report-time-range/report-time-range.json
@@ -64,16 +78,22 @@ jobs:
     params:
       PCF_API_ENDPOINT: {{pcf-api-endpoint}}
 
-  - task: email-usage-file
-    file: pipeline-scripts/ci/tasks/email-usage-file.yml
+  - put: file-repo
     params:
-      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
-      SMTP_HOST: {{smtp-host}}
-      SMTP_PORT: {{smtp-port}}
-      SMTP_USERNAME: {{smtp-username}}
-      SMTP_PASSWORD: {{smtp-password}}
-      EMAIL_FROM: {{email-from}}
-      EMAIL_TO: {{email-to}}
+      file: ./orgs-usage-consolidated/*.json
+      acl: public-read
+
+  # - task: email-usage-file
+  #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
+  #   params:
+  #     PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+  #     SMTP_HOST: {{smtp-host}}
+  #     SMTP_PORT: {{smtp-port}}
+  #     SMTP_USERNAME: {{smtp-username}}
+  #     SMTP_PASSWORD: {{smtp-password}}
+  #     EMAIL_FROM: {{email-from}}
+  #     EMAIL_TO: {{email-to}}
+
 
 
 # - name: backup-elastic-runtime
