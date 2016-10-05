@@ -11,7 +11,7 @@ resources:
   source:
     branch: master
     uri: {{git-project-url}}
-- name: file-repo
+- name: file-repository
   type: s3
   source:
     bucket: {{s3-bucket}}
@@ -33,7 +33,7 @@ jobs:
   plan:
   - get: pipeline-scripts
     trigger: false
-  - get: file-repo
+  # - get: file-repository
   # - get: monthly-trigger
   #   trigger: true
   - task: define-report-time-range
@@ -76,9 +76,9 @@ jobs:
   - task: consolidate-usage-data
     file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
     params:
-      PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+      PCF_DEPLOY_NAME: {{pcf-deploy-name}}
 
-  - put: file-repo
+  - put: file-repository
     params:
       file: ./orgs-usage-consolidated/*.json
       acl: public-read
@@ -86,15 +86,13 @@ jobs:
   # - task: email-usage-file
   #   file: pipeline-scripts/ci/tasks/email-usage-file.yml
   #   params:
-  #     PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+  #     PCF_DEPLOY_NAME: {{pcf-deploy-name}}
   #     SMTP_HOST: {{smtp-host}}
   #     SMTP_PORT: {{smtp-port}}
   #     SMTP_USERNAME: {{smtp-username}}
   #     SMTP_PASSWORD: {{smtp-password}}
   #     EMAIL_FROM: {{email-from}}
   #     EMAIL_TO: {{email-to}}
-
-
 
 # - name: backup-elastic-runtime
 #   serial: true

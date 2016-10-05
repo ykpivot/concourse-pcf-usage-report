@@ -4,7 +4,7 @@ var orgsUsageObject = {};
 var outputConsolidatedObject = {};
 var reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
 var inputFileName="./orgs-usage/pcf-orgs-usage.json";
-var outputFileName="./orgs-usage-consolidated/pcf-usage-from-"+reportTimeRangeObject.USAGE_START_DATE+"-to-"+reportTimeRangeObject.USAGE_END_DATE+"_"+Math.floor(Date.now() / 1000)+".json";
+var outputFileName="./orgs-usage-consolidated/pcf-"+process.env.PCF_DEPLOY_NAME+"-usage-from-"+reportTimeRangeObject.USAGE_START_DATE+"-to-"+reportTimeRangeObject.USAGE_END_DATE+"_"+Math.floor(Date.now() / 1000)+".json";
 
 init();
 
@@ -24,7 +24,7 @@ function initializeOutputObject() {
   outputConsolidatedObject.resources=[];
   outputConsolidatedObject.start_date=orgsUsageObject.start_date;
   outputConsolidatedObject.end_date=orgsUsageObject.end_date;
-  outputConsolidatedObject.pcf_api_endpoint=process.env.PCF_API_ENDPOINT;
+  outputConsolidatedObject.pcf_deploy_name=process.env.PCF_DEPLOY_NAME;
 }
 
 function processAllOrganizations() {
