@@ -47,6 +47,8 @@ jobs:
           #
           # date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
           # date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+          #
+          sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
           cat  ./report-time-range/report-time-range.json
 
   - task: get-usage-data
@@ -67,8 +69,8 @@ jobs:
       SMTP_PORT: {{smtp-port}}
       SMTP_USERNAME: {{smtp-username}}
       SMTP_PASSWORD: {{smtp-password}}
-      EMAIL_FROM: {{email-to}}
-      EMAIL_TO: {{email-from}}
+      EMAIL_FROM: {{email-from}}
+      EMAIL_TO: {{email-to}}
 
 
 # - name: backup-elastic-runtime

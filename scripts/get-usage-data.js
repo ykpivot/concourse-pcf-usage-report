@@ -13,7 +13,6 @@ var ORGS_USAGE_FILE="./"+OUTPUT_DIR_NAME+"/pcf-orgs-usage.json";
 
 var reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
 
-
 init();
 
 function init() {
@@ -48,6 +47,8 @@ function cfGetOrgs() {
       orgsUsageObject.start_date=reportTimeRangeObject.USAGE_START_DATE;
       orgsUsageObject.end_date=reportTimeRangeObject.USAGE_END_DATE;
       cfGetQuotas();
+    } else {
+      process.exit(1);
     }
   });
 }
@@ -60,6 +61,8 @@ function cfGetQuotas() {
       var quotasObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.quota_definitions=quotasObject;
       cfGetServices();
+    } else {
+      process.exit(1);
     }
   });
 };
@@ -72,6 +75,8 @@ function cfGetServices() {
       var parsedObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.services=parsedObject;
       cfGetServicePlans();
+    } else {
+      process.exit(1);
     }
   });
 };
@@ -84,6 +89,8 @@ function cfGetServicePlans() {
       var parsedObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.service_plans=parsedObject;
       cfGetBuildpacks();
+    } else {
+      process.exit(1);
     }
   });
 };
@@ -96,6 +103,8 @@ function cfGetBuildpacks() {
       var parsedObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.buildpacks=parsedObject;
       cfGetOrgUsage(0);
+    } else {
+      process.exit(1);
     }
   });
 }
@@ -111,6 +120,8 @@ function cfGetOrgUsage(orgIndex) {
       var parsedObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.resources[orgIndex].space_quota_definitions=parsedObject;
       cfGetOrgSpaces(orgIndex,current_org_guid);
+    } else {
+      process.exit(1);
     }
   });
 }
@@ -123,18 +134,26 @@ function cfGetOrgSpaces(orgIndex,orgGuid) {
       var parsedObject=JSON.parse(stdout, 'utf8');
       orgsUsageObject.resources[orgIndex].spaces=parsedObject;
       cfGetOrgServicesUsage(orgIndex,orgGuid);
+    } else {
+      process.exit(1);
     }
   });
 }
 
 function cfGetOrgServicesUsage(orgIndex,orgGuid) {
   console.log("Getting Services usage for the org")
-  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/service_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/service_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+reportTimeRangeObject.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
   exec(cf_cmd, function(error, stdout, stderr) {
     if (! execError("cfGetOrgServicesUsage",error,stderr)) {
       var parsedObject=JSON.parse(stdout, 'utf8');
+      if (parsedObject.error) {
+        console.log("Error while issuing command ["+cf_cmd+"]:\n"+JSON.stringify(parsedObject, null, 2));
+        process.exit(1);
+      }
       mergeSpaceUsageInfo(parsedObject,orgsUsageObject.resources[orgIndex].spaces);
       cfGetOrgApplicationsUsage(orgIndex,orgGuid);
+    } else {
+      process.exit(1);
     }
   });
 }
@@ -161,12 +180,19 @@ function mergeSpaceUsageInfo(servicesUsageObject,spacesDetailsObject) {
 
 function cfGetOrgApplicationsUsage(orgIndex,orgGuid) {
   console.log("Getting Applications usage for the org")
-  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/app_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+process.env.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/app_usages?start='+reportTimeRangeObject.USAGE_START_DATE+'&end='+reportTimeRangeObject.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  // console.log("Command: "+cf_cmd);
   exec(cf_cmd, function(error, stdout, stderr) {
     if (! execError("cfGetOrgApplicationsUsage",error,stderr)) {
       var parsedObject=JSON.parse(stdout, 'utf8');
+      if (parsedObject.error) {
+        console.log("Error while issuing command ["+cf_cmd+"]:\n"+JSON.stringify(parsedObject, null, 2));
+        process.exit(1);
+      }
       mergeAppsUsageInfo(parsedObject,orgsUsageObject.resources[orgIndex].spaces);
       cfGetApplicationsOfSpace(orgIndex,orgGuid,0);
+    } else {
+      process.exit(1);
     }
   });
 }
@@ -203,6 +229,8 @@ function cfGetApplicationsOfSpace(orgIndex,orgGuid,spaceIndex) {
         } else {
           doNextOrganization(orgIndex);
         }
+      } else {
+        process.exit(1);
       }
     });
   } else {
@@ -214,11 +242,11 @@ function doNextOrganization(orgIndex) {
   if (++orgIndex<orgsUsageObject.resources.length){
     cfGetOrgUsage(orgIndex);
   } else {
-    finalize();
+    finalizeProcess();
   }
 }
 
-function finalize() {
+function finalizeProcess() {
   fs.writeFile(ORGS_USAGE_FILE, JSON.stringify(orgsUsageObject, null, 2) , 'utf-8');
-  // console.log("OrgsObject="+JSON.stringify(orgsUsageObject, null, 2));
+  //console.log("OrgsObject="+JSON.stringify(orgsUsageObject, null, 2));
 }
