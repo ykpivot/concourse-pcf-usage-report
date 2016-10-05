@@ -34,7 +34,6 @@ jobs:
   - do:
     - get: pipeline-scripts
       trigger: false
-    # - get: file-repository
     # - get: monthly-trigger
     #   trigger: true
     - task: define-report-time-range
@@ -66,25 +65,6 @@ jobs:
             sed -i "s/[']/\"/g" ./report-time-range/report-time-range.json
             cat  ./report-time-range/report-time-range.json
 
-    - task: prep-notification-email-text
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: pivotalservices/pcf-usage-tools
-            tag: "latest"
-        inputs:
-          - name: report-time-range
-        outputs:
-          - name: email-text
-        run:
-          path: sh
-          args:
-          - -exc
-          - |
-            echo "Build failure while generating PCF usage report." >  ./email-text/email-text-failure.txt
-
     - task: get-usage-data
       file: pipeline-scripts/ci/tasks/get-usage-data.yml
       params:
@@ -113,8 +93,8 @@ jobs:
         SMTP_PASSWORD: {{smtp-password}}
         EMAIL_FROM: {{email-from}}
         EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_FILE: ./email-text/email-text-failure.txt
-        EMAIL_TEXT_FILE: ./email-text/email-text-failure.txt
+        EMAIL_SUBJECT_TEXT: PCF usage report build failure
+        EMAIL_BODY_TEXT: Build failure while generating PCF usage report.
         # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
 
 - name: feed-report-into-billing-system
@@ -128,23 +108,6 @@ jobs:
       trigger: true
       passed:
       - retrieve-and-process-pcf-usage-data
-    - task: prep-notification-email-text
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: pivotalservices/pcf-usage-tools
-            tag: "latest"
-        outputs:
-          - name: email-text
-        run:
-          path: sh
-          args:
-          - -exc
-          - |
-            echo "Success of PCF usage report build" >  ./email-text/email-text-success.txt
-            echo "Build failure while feeding PCF usage report into billing system" >  ./email-text/email-text-failure2.txt
 
     - task: feed-report-data-into-billing-system
       config:
@@ -162,10 +125,21 @@ jobs:
           args:
           - -exc
           - |
+            #!/bin/bash
+            set -e
             echo "This is a place holder for the code to read the report file from the file repository and feed it to a billing system"
-            ls -la file-repository
             echo "Report file URL:"
             cat ./file-repository/url
+            echo "Report file version(timestamp of creation in seconds):"
+            cat ./file-repository/version
+            echo "File list from the repository:"
+            ls -la file-repository
+
+    - task: prep-success-notification-email-text
+      file: pipeline-scripts/ci/tasks/prepare-email.yml
+      params:
+        EMAIL_SUBJECT_TEXT: PCF usage report build complete
+        EMAIL_BODY_TEXT: Successfully generated PCF usage report.
 
     - task: email-notification-success
       file: pipeline-scripts/ci/tasks/send-email.yml
@@ -176,8 +150,8 @@ jobs:
         SMTP_PASSWORD: {{smtp-password}}
         EMAIL_FROM: {{email-from}}
         EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
-        EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
+        EMAIL_SUBJECT_FILE: ./email-text/email-subject.txt
+        EMAIL_BODY_FILE: ./email-text/email-body.txt
         # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
     on_failure:
       task: email-notification-failure
@@ -189,6 +163,6 @@ jobs:
         SMTP_PASSWORD: {{smtp-password}}
         EMAIL_FROM: {{email-from}}
         EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_FILE: ./email-text/email-text-failure2.txt
-        EMAIL_TEXT_FILE: ./email-text/email-text-failure2.txt
+        EMAIL_SUBJECT_TEXT: PCF usage report build failure
+        EMAIL_BODY_TEXT: Build failure while generating PCF usage report.
         # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'

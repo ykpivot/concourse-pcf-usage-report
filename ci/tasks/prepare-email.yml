@@ -1,0 +1,30 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: pivotalservices/pcf-usage-tools
+    tag: "latest"
+
+outputs:
+  - name: email-text
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    echo "$EMAIL_SUBJECT_TEXT" >  ./email-text/email-subject.txt
+    echo "$EMAIL_BODY_TEXT" >  ./email-text/email-body.txt
+
+
+# params:
+#   SMTP_HOST:
+#   SMTP_PORT:
+#   SMTP_USERNAME:
+#   SMTP_PASSWORD:
+#   EMAIL_FROM:
+#   EMAIL_TO:
+#   EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
+#   EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
