@@ -4,6 +4,10 @@ resource_types:
   type: docker-image
   source:
     repository: cftoolsmiths/cron-test
+- name: email
+  type: docker-image
+  source:
+    repository: mdomke/concourse-email-resource
 
 resources:
 - name: pipeline-scripts
@@ -19,6 +23,11 @@ resources:
     secret_access_key: {{s3-secret-access-key}}
     regexp: {{s3-directory-path}}
     region_name: us-west-1
+- name: send-email
+  type: email
+  source:
+    from: {{email-from}}
+
 - name: monthly-trigger
   type: cron-resource
   source:
@@ -36,6 +45,9 @@ jobs:
       trigger: false
     # - get: monthly-trigger
     #   trigger: true
+    - task: prep-success-notification-email-text
+      file: pipeline-scripts/ci/tasks/prepare-email.yml
+
     - task: define-report-time-range
       config:
         platform: linux
@@ -51,6 +63,7 @@ jobs:
           args:
           - -exc
           - |
+            exit(1)
             #
             # Sample 1: set time range as last month's start and end dates
             #
@@ -84,18 +97,11 @@ jobs:
         acl: public-read
 
     on_failure:
-      task: email-notification-failure
-      file: pipeline-scripts/ci/tasks/send-email.yml
+      put: send-email
       params:
-        SMTP_HOST: {{smtp-host}}
-        SMTP_PORT: {{smtp-port}}
-        SMTP_USERNAME: {{smtp-username}}
-        SMTP_PASSWORD: {{smtp-password}}
-        EMAIL_FROM: {{email-from}}
-        EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_TEXT: PCF usage report build failure
-        EMAIL_BODY_TEXT: Build failure while generating PCF usage report.
-        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+        to: [lsilva@pivotal.io]
+        subject: ./email-text/email-subject-failure.txt
+        body: ./email-text/email-body-failure.txt
 
 - name: feed-report-into-billing-system
   serial: true
@@ -108,6 +114,9 @@ jobs:
       trigger: true
       passed:
       - retrieve-and-process-pcf-usage-data
+
+    - task: prep-success-notification-email-text
+      file: pipeline-scripts/ci/tasks/prepare-email.yml
 
     - task: feed-report-data-into-billing-system
       config:
@@ -135,34 +144,16 @@ jobs:
             echo "File list from the repository:"
             ls -la file-repository
 
-    - task: prep-success-notification-email-text
-      file: pipeline-scripts/ci/tasks/prepare-email.yml
-      params:
-        EMAIL_SUBJECT_TEXT: PCF usage report build complete
-        EMAIL_BODY_TEXT: Successfully generated PCF usage report.
 
-    - task: email-notification-success
-      file: pipeline-scripts/ci/tasks/send-email.yml
+    - put: send-email
       params:
-        SMTP_HOST: {{smtp-host}}
-        SMTP_PORT: {{smtp-port}}
-        SMTP_USERNAME: {{smtp-username}}
-        SMTP_PASSWORD: {{smtp-password}}
-        EMAIL_FROM: {{email-from}}
-        EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_FILE: ./email-text/email-subject.txt
-        EMAIL_BODY_FILE: ./email-text/email-body.txt
-        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+        to: {{email-to}}
+        subject: ./email-text/email-subject.txt
+        body: ./email-text/email-body.txt
+
     on_failure:
-      task: email-notification-failure
-      file: pipeline-scripts/ci/tasks/send-email.yml
+      put: send-email
       params:
-        SMTP_HOST: {{smtp-host}}
-        SMTP_PORT: {{smtp-port}}
-        SMTP_USERNAME: {{smtp-username}}
-        SMTP_PASSWORD: {{smtp-password}}
-        EMAIL_FROM: {{email-from}}
-        EMAIL_TO: {{email-to}}
-        EMAIL_SUBJECT_TEXT: PCF usage report build failure
-        EMAIL_BODY_TEXT: Build failure while generating PCF usage report.
-        # EMAIL_ATTACHMENTS: '[{ "filename": "email-text-success.txt","path": "./email-text/email-text-success.txt", "contentType":"text/plain"}]'
+        to: {{email-to}}
+        subject: ./email-text/email-subject-failure.txt
+        body: ./email-text/email-body-failure.txt

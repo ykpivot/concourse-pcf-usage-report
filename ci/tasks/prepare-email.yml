@@ -15,8 +15,10 @@ run:
   args:
   - -exc
   - |
-    echo "$EMAIL_SUBJECT_TEXT" >  ./email-text/email-subject.txt
-    echo "$EMAIL_BODY_TEXT" >  ./email-text/email-body.txt
+    echo "Successfull build" >  ./email-text/email-subject.txt
+    echo "A PCF usage report has been successfully created." >  ./email-text/email-body.txt
+    echo "Build failure" >  ./email-text/email-subject-failure.txt
+    echo "Build failed to produce PCF usage report." >  ./email-text/email-body-failure.txt
 
 
 # params:
