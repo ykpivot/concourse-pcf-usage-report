@@ -18,5 +18,5 @@ run:
     env
     echo "Successfull build" >  ./email-text/email-subject.txt
     echo "A PCF usage report has been successfully created for '$PCF_DEPLOY_NAME' by build '$BUILD_ID'." >  ./email-text/email-body.txt
-    echo 'Build {{ env["BUILD_ID"] }} failed' >  ./email-text/email-subject-failure.txt
-    echo 'Build {{ env["BUILD_ID"] }} failed to produce a PCF usage report for $PCF_DEPLOY_NAME.' >  ./email-text/email-body-failure.txt
+    echo 'Build {{ BUILD_ID }} failed' >  ./email-text/email-subject-failure.txt
+    echo 'Build {{ BUILD_ID }} failed to produce a PCF usage report for $PCF_DEPLOY_NAME.' >  ./email-text/email-body-failure.txt
