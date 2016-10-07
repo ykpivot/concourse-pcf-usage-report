@@ -36,7 +36,8 @@ The pipeline performs the following steps:
 TBD
 ---
 ### How to setup and run the sample pipeline
-If you want to see the full sample pipeline provided in action, here is how you can set it up on your own Concourse server:
+
+Here is how you can set up the pipeline on your own Concourse server:
 
 ##### Pre-requisites to setup this example on your Concourse server
 
@@ -45,32 +46,54 @@ If you want to see the full sample pipeline provided in action, here is how you 
 
 ##### Configuration steps
 1. Clone the sample git repository on your local machine  
-     __clone https://github.com/pivotalservices/concourse-pipeline-samples.git__  
-     __cd concourse-pipeline-samples/email-with-attachments__  
+     __clone https://github.com/pivotalservices/concourse-pcf-usage-report.git__  
+     __cd concourse-pcf-usage-report__  
 
 1. Setup the pipeline credentials file
   * Make a copy of the sample credentials file  
-  __cp ci/credentials.yml.sample ci/credentials.yml__  
+  __cp ci/pipeline/credentials.yml.sample ci/pipeline/credentials.yml__  
 
-  * Edit _ci/credentials.yml_ and fill out all the required credentials:  
+  * Edit _ci/pipeline/credentials.yml_ and fill out all the required credentials:  
   .  
-_```git-project-url```:_ the URL of the git repositor containing the pipeline scripts  
-_```smtp-host```:_ your smtp host  (e.g. ```smtp.gmail.com```)  
-_```smtp-port```:_ your smtp server port number  (e.g. ```465```)   
-_```smtp-username```:_ your userId/email-address with the smtp server with encoded @ sign  (e.g. ```myemail%40gmai.com```)   
-_```smtp-password```:_ your userId/email-address password  
-_```email-from```:_ the sender email address without enconding   (e.g. ```myemail@gmail.com```)  
+_```git-project-url```:_ the URL of the git repository containing the pipeline scripts  
+
+_```pcf-api-endpoint```:_ targeted PCF API endpoint (e.g. ```https://api.run.mydomain.com```)  
+_```pcf-apps-domain```:_ targeted PCF applications domain (e.g. ```run.mydomain.com```)   
+_```pcf-sys-admin-user```:_ PCF admin user ID to login to cf API (e.g. ```admin```)   
+_```pcf-sys-admin-user-password```:_ password of PCF admin user above  
+_```pcf-deploy-name```:_ ID or label for the targeted PCF deployment (e.g. ```production```)   
+
+_```s3-bucket```:_ ID of the AWS S3 bucket to upload the usage report to (e.g. ```mys3bucket```)   
+_```s3-access-key-id```:_ access key of the user with write access to the AWS S3 bucket  
+_```s3-secret-access-key```:_ Secret access key of the user with write access to the AWS S3 bucket       
+_```s3-region_name```:_ AWS S3 bucket region name (e.g. ```us-west-1```)   
+
+_```email-from```:_ the email address of the notification sender   (e.g. ```myemail@gmail.com```)  
 _```email-to```:_ the list of comma separated destination emails without encoding  (e.g. ```him@there.com,her@here.net```)   
 
 3. Configure the sample pipeline in Concourse with the following commands:  
-   __fly -t <your-concourse-alias> set-pipeline -p email-pipeline -c ci/pipeline.yml -l ci/credentials.yml__  
+   __fly -t <your-concourse-alias> set-pipeline -p pcf-usage-pipeline -c ci/pipeline/pcf-usage-report-simple.yml -l ci/pipeline/credentials.yml__  
 
-4. Access to the Concourse web interface, click on the list of pipelines, un-pause the _email-pipeline_ and then click on its link to visualize its pipeline diagram
-5. To execute the pipeline, click on the ```send-email-with-attachment``` job and then click on the ```+``` sign to execute the pipeline.
+4. Access to the Concourse web interface, click on the list of pipelines, un-pause the _pcf-usage-pipeline_ and then click on its link to visualize its pipeline diagram  
 
-The recipients listed you your ```email-from``` parameter should receive an email shortly after the pipeline is run successfully.
+5. To execute the pipeline, click on the ```retrieve-and-process-pcf-usage-data``` job and then click on the ```+``` sign to execute the pipeline.
+
+The recipients listed you your ```email-to``` parameter should receive an email shortly after the pipeline is run successfully.
 
 ---
-### Room for improvements
+### Customizing and making the pipeline ready for production
+
+- enable timer resource
+- time period of report
+TBD
+
+---
+### Potential improvements and extensions
+
+TBD
+---
+### Notes
+
+Note 1: dependency on PCF API for accuracy of results
 
 TBD
