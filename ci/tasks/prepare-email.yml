@@ -19,4 +19,4 @@ run:
     echo "Successfull build for pipeline {{ BUILD_PIPELINE_NAME }}" >  ./email-text/email-subject.txt
     echo "A PCF usage report has been successfully created for '$PCF_DEPLOY_NAME' in build pipeline '{{ BUILD_PIPELINE_NAME }}'." >  ./email-text/email-body.txt
     echo "Build {{ BUILD_NAME }} of {{ BUILD_PIPELINE_NAME }} pipeline failed" >  ./email-text/email-subject-failure.txt
-    echo "Build '{{ BUILD_NAME }}' of pipeline '{{ BUILD_PIPELINE_NAME }}' failed at job '{{ BUILD_JOB_NAME }}' to produce a PCF usage report for '$PCF_DEPLOY_NAME'." >  ./email-text/email-body-failure.txt
+    echo "Build '{{ BUILD_NAME }}' of pipeline '{{ BUILD_PIPELINE_NAME }}' failed at job '{{ BUILD_JOB_NAME }}' to produce a PCF usage report for '$PCF_DEPLOY_NAME'. External URL: {{ ATC_EXTERNAL_URL }}" >  ./email-text/email-body-failure.txt

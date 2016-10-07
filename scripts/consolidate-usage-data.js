@@ -21,10 +21,15 @@ function readUsageDataFile(fileName) {
 }
 
 function initializeOutputObject() {
-  outputConsolidatedObject.resources=[];
+  outputConsolidatedObject.organizations=[];
+  outputConsolidatedObject.pcf_deploy_name=process.env.PCF_DEPLOY_NAME;
   outputConsolidatedObject.start_date=orgsUsageObject.start_date;
   outputConsolidatedObject.end_date=orgsUsageObject.end_date;
-  outputConsolidatedObject.pcf_deploy_name=process.env.PCF_DEPLOY_NAME;
+  outputConsolidatedObject.total_app_instance_count=0;
+  outputConsolidatedObject.total_app_memory_used_in_mb=0;
+  outputConsolidatedObject.total_disk_quota_in_mb=0;
+  outputConsolidatedObject.service_usages=[];
+  outputConsolidatedObject.buildpack_usages={};
 }
 
 function processAllOrganizations() {
@@ -175,46 +180,70 @@ function processOrganization(item) {
     orgObject.total_disk_quota_in_mb+=newSpaceObject.total_disk_quota_in_mb;
 
     // aggregate service usage from space object into parent org object
-    for (var serviceObjCount in newSpaceObject.service_usages) {
-      // console.log("serviceObjCount="+serviceObjCount);
-      var current_svcusage_object = newSpaceObject.service_usages[serviceObjCount];
-      // console.log("current_svcusage_object="+current_svcusage_object.service_name);
-      // check if service + service plan already exists
-      var svcOrgPosition=-1;
-      for (var serviceOrgCount in orgObject.service_usages) {
-        if (orgObject.service_usages[serviceOrgCount].service_guid==current_svcusage_object.service_guid &&
-            orgObject.service_usages[serviceOrgCount].plan_guid==current_svcusage_object.plan_guid) {
-              svcOrgPosition=serviceOrgCount;
-              break;
-        }
-      }
-      // console.log("svcOrgPosition="+svcOrgPosition);
-      if (svcOrgPosition != -1) {
-        orgObject.service_usages[svcOrgPosition].instances += current_svcusage_object.instances
-        orgObject.service_usages[svcOrgPosition].duration_in_seconds += current_svcusage_object.duration_in_seconds
-      } else {
-        orgObject.service_usages.push(current_svcusage_object);
-      }
-      // console.log("Updated services usage obj: "+JSON.stringify(orgObject.service_usages, null, 2));
-    }
+    aggregateServicesUsage(newSpaceObject.service_usages, orgObject.service_usages);
 
     // aggregate buildpacks usage from space object into parent org object
-    for (var buildpackKey in newSpaceObject.buildpack_usages) {
-        if (newSpaceObject.buildpack_usages.hasOwnProperty(buildpackKey)) {
-          if(orgObject.buildpack_usages[buildpack_key]){
-             orgObject.buildpack_usages[buildpack_key].instances+=newSpaceObject.buildpack_usages[buildpack_key].instances;
-          } else {
-             orgObject.buildpack_usages[buildpack_key]=newSpaceObject.buildpack_usages[buildpack_key];
-          }
-        }
-    }
+    aggregateBuildpackUsage(newSpaceObject.buildpack_usages, orgObject.buildpack_usages);
 
     // add new space object to parent org object
     orgObject.spaces.push(newSpaceObject);
   }
 
   // add org object to main output object
-  outputConsolidatedObject.resources.push(orgObject);
+  outputConsolidatedObject.organizations.push(orgObject);
+
+  outputConsolidatedObject.total_app_instance_count+=orgObject.total_app_instance_count;
+  outputConsolidatedObject.total_app_memory_used_in_mb+=orgObject.total_app_memory_used_in_mb;
+  outputConsolidatedObject.total_disk_quota_in_mb+=orgObject.total_disk_quota_in_mb;
+
+  // aggregate service usage from org object into main parent object
+  aggregateServicesUsage(orgObject.service_usages,outputConsolidatedObject.service_usages);
+
+  // aggregate buildpacks usage from org object into global parent object
+  aggregateBuildpackUsage(orgObject.buildpack_usages,outputConsolidatedObject.buildpack_usages);
+
+  // outputConsolidatedObject.service_usages=[];
+
+}
+
+function aggregateServicesUsage(originArrayObject, destinationArrayObject) {
+
+  for (var serviceObjCount in originArrayObject) {
+    // console.log("serviceObjCount="+serviceObjCount);
+    var current_svcusage_object = originArrayObject[serviceObjCount];
+    // console.log("current_svcusage_object="+current_svcusage_object.service_name);
+    // check if service + service plan already exists
+    var svcOrgPosition=-1;
+    for (var serviceOrgCount in destinationArrayObject) {
+      if (destinationArrayObject[serviceOrgCount].service_guid==current_svcusage_object.service_guid &&
+          destinationArrayObject[serviceOrgCount].plan_guid==current_svcusage_object.plan_guid) {
+            svcOrgPosition=serviceOrgCount;
+            break;
+      }
+    }
+    // console.log("svcOrgPosition="+svcOrgPosition);
+    if (svcOrgPosition != -1) {
+      destinationArrayObject[svcOrgPosition].instances += current_svcusage_object.instances
+      destinationArrayObject[svcOrgPosition].duration_in_seconds += current_svcusage_object.duration_in_seconds
+    } else {
+      destinationArrayObject.push(current_svcusage_object);
+    }
+    // console.log("Updated services usage obj: "+JSON.stringify(orgObject.service_usages, null, 2));
+  }
+
+}
+
+function aggregateBuildpackUsage(originArrayObject, destinationArrayObject) {
+
+  for (var buildpack_key in originArrayObject) {
+      if (originArrayObject.hasOwnProperty(buildpack_key)) {
+        if(destinationArrayObject[buildpack_key]){
+           destinationArrayObject[buildpack_key].instances+=originArrayObject[buildpack_key].instances;
+        } else {
+           destinationArrayObject[buildpack_key]=originArrayObject[buildpack_key];
+        }
+      }
+  }
 
 }
 

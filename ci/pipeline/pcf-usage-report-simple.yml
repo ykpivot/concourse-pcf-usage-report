@@ -65,7 +65,6 @@ jobs:
           args:
           - -exc
           - |
-            exit 1
             #
             # Sample 1: set time range as last month's start and end dates
             #
@@ -104,7 +103,6 @@ jobs:
         to: [ {{email-to}} ]
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
-        # BUILD_ID: {BUILD_ID}
 
 
 - name: feed-report-into-billing-system
@@ -121,6 +119,8 @@ jobs:
 
     - task: prep-notification-email-text
       file: pipeline-scripts/ci/tasks/prepare-email.yml
+      params:
+        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
 
     - task: feed-report-data-into-billing-system
       config:
@@ -141,11 +141,11 @@ jobs:
             #!/bin/bash
             set -e
             echo "This is a place holder for the code to read the report file from the file repository and feed it to a billing system"
-            echo "Report file URL:"
+            echo "JSON Report file URL from the repository:"
             cat ./file-repository/url
             echo "Report file version(timestamp of creation in seconds):"
             cat ./file-repository/version
-            echo "File list from the repository:"
+            echo "File list available to be used by this job/task:"
             ls -la file-repository
 
 
@@ -154,7 +154,6 @@ jobs:
         to: [ {{email-to}} ]
         subject: ./email-text/email-subject.txt
         body: ./email-text/email-body.txt
-        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
 
     on_failure:
       put: send-email
@@ -162,4 +161,3 @@ jobs:
         to: [ {{email-to}} ]
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
-        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
