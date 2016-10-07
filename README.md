@@ -16,7 +16,8 @@ The pipeline performs the following steps:
 
 ![PCF Usage Report producer pipeline screenshot](https://github.com/pivotalservices/concourse-pcf-usage-report/raw/master/common/images/pipeline_annotated.png)
 
-1. Pipeline tasks and scripts are retrieved from a git repository  
+1. The pipeline is automatically triggered by a time resource (e.g. once a month).  
+   Pipeline tasks and scripts are retrieved from a git repository  
 
 2. Usage data and quota information is retrieved from the PCF deployment:  
    - Organization, space, applications, services and buildpack information, along with memory and space quotas are retrieved using [Cloud Foundry APIs](https://apidocs.cloudfoundry.org/)  
@@ -83,9 +84,18 @@ The recipients listed you your ```email-to``` parameter should receive an email 
 ---
 ### Customizing and making the pipeline ready for production
 
-- enable timer resource
-- time period of report
-TBD
+##### Enable the time resource  
+  The time resource that automatically triggers the pipeline is commented out/disable by default.  
+  In order to have it enabled, uncomment out the two commented lines that will enable the resource in the pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L46)) and repeat step 3 from the pipeline setup instructions above.
+
+##### Customize the time period of report
+  By default, the time range set for the report is the last month's initial and end dates.  
+  In order to change it, look for task ```define-report-time-range``` of pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L71)) and change the two line of bash scripts that calculate the initial and end dates to be used by the pipeline scripts.  
+  The sample provides a commented out example on how to set those two dates to be the beginning of the current month until the current date (see below). After changing these dates, repeat step 3 from the pipeline setup instructions above.     
+  ```
+  date1=$(date -d "$(date +%Y-%m-01)" +"%Y-%m-01")
+  date -d "$(date +%Y-%m-%d)" +"{ 'USAGE_START_DATE':'$date1', 'USAGE_END_DATE':'%Y-%m-%d' }" > ./report-time-range/report-time-range.json
+  ```
 
 ---
 ### Potential improvements and extensions
