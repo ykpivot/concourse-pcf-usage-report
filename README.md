@@ -57,21 +57,18 @@ Here is how you can set up the pipeline on your own Concourse server:
   * Edit _ci/pipeline/credentials.yml_ and fill out all the required credentials:  
   .  
 _```git-project-url```:_ the URL of the git repository containing the pipeline scripts  
-
 _```pcf-api-endpoint```:_ targeted PCF API endpoint (e.g. ```https://api.run.mydomain.com```)  
 _```pcf-apps-domain```:_ targeted PCF applications domain (e.g. ```run.mydomain.com```)   
 _```pcf-sys-admin-user```:_ PCF admin user ID to login to cf API (e.g. ```admin```)   
 _```pcf-sys-admin-user-password```:_ password of PCF admin user above  
 _```pcf-deploy-name```:_ ID or label for the targeted PCF deployment (e.g. ```production```)   
-
 _```s3-bucket```:_ ID of the AWS S3 bucket to upload the usage report to (e.g. ```mys3bucket```)   
 _```s3-access-key-id```:_ access key of the user with write access to the AWS S3 bucket  
 _```s3-secret-access-key```:_ Secret access key of the user with write access to the AWS S3 bucket       
 _```s3-region_name```:_ AWS S3 bucket region name (e.g. ```us-west-1```)   
-
 _```email-from```:_ the email address of the notification sender   (e.g. ```myemail@gmail.com```)  
 _```email-to```:_ the list of comma separated destination emails without encoding  (e.g. ```him@there.com,her@here.net```)   
-
+.
 3. Configure the sample pipeline in Concourse with the following commands:  
    __fly -t <your-concourse-alias> set-pipeline -p pcf-usage-pipeline -c ci/pipeline/pcf-usage-report-simple.yml -l ci/pipeline/credentials.yml__  
 
@@ -84,11 +81,11 @@ The recipients listed you your ```email-to``` parameter should receive an email 
 ---
 ### Customizing and making the pipeline ready for production
 
-##### Enable the time resource  
+- **Enable the time resource**  
   The time resource that automatically triggers the pipeline is commented out/disable by default.  
   In order to have it enabled, uncomment out the two commented lines that will enable the resource in the pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L46)) and repeat step 3 from the pipeline setup instructions above.
 
-##### Customize the time period of report
+- **Customize the time period of report**
   By default, the time range set for the report is the last month's initial and end dates.  
   In order to change it, look for task ```define-report-time-range``` of pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L71)) and change the two line of bash scripts that calculate the initial and end dates to be used by the pipeline scripts.  
   The sample provides a commented out example on how to set those two dates to be the beginning of the current month until the current date (see below). After changing these dates, repeat step 3 from the pipeline setup instructions above.     
