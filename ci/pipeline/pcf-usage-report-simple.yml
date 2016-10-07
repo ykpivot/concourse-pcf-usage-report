@@ -47,6 +47,9 @@ jobs:
     #   trigger: true
     - task: prep-notification-email-text
       file: pipeline-scripts/ci/tasks/prepare-email.yml
+      params:
+        BUILD_ID: $BUILD_ID
+
 
     - task: define-report-time-range
       config:
@@ -63,6 +66,7 @@ jobs:
           args:
           - -exc
           - |
+            exit 1
             #
             # Sample 1: set time range as last month's start and end dates
             #
@@ -102,6 +106,8 @@ jobs:
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
         PCF_DEPLOY_NAME: {{pcf-deploy-name}}
+        BUILD_ID: $BUILD_ID
+
 
 - name: feed-report-into-billing-system
   serial: true
