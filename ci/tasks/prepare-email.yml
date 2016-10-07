@@ -15,18 +15,11 @@ run:
   args:
   - -exc
   - |
+    env
     echo "Successfull build" >  ./email-text/email-subject.txt
-    echo "A PCF usage report has been successfully created." >  ./email-text/email-body.txt
-    echo "Build failure" >  ./email-text/email-subject-failure.txt
-    echo "Build failed to produce PCF usage report." >  ./email-text/email-body-failure.txt
+    echo "A PCF usage report has been successfully created for '$PCF_DEPLOY_NAME' by build '$BUILD_ID'." >  ./email-text/email-body.txt
+    echo "Build '$BUILD_ID' failed" >  ./email-text/email-subject-failure.txt
+    echo "Build '$BUILD_ID' failed to produce a PCF usage report for '$PCF_DEPLOY_NAME'." >  ./email-text/email-body-failure.txt
 
-
-# params:
-#   SMTP_HOST:
-#   SMTP_PORT:
-#   SMTP_USERNAME:
-#   SMTP_PASSWORD:
-#   EMAIL_FROM:
-#   EMAIL_TO:
-#   EMAIL_SUBJECT_FILE: ./email-text/email-text-success.txt
-#   EMAIL_TEXT_FILE: ./email-text/email-text-success.txt
+params:
+  PCF_DEPLOY_NAME: Production

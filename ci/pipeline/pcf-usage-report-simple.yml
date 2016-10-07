@@ -45,7 +45,7 @@ jobs:
       trigger: false
     # - get: monthly-trigger
     #   trigger: true
-    - task: prep-success-notification-email-text
+    - task: prep-notification-email-text
       file: pipeline-scripts/ci/tasks/prepare-email.yml
 
     - task: define-report-time-range
@@ -63,7 +63,6 @@ jobs:
           args:
           - -exc
           - |
-            exit(1)
             #
             # Sample 1: set time range as last month's start and end dates
             #
@@ -99,9 +98,10 @@ jobs:
     on_failure:
       put: send-email
       params:
-        to: [lsilva@pivotal.io]
+        to: [ {{email-to}} ]
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
+        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
 
 - name: feed-report-into-billing-system
   serial: true
@@ -115,7 +115,7 @@ jobs:
       passed:
       - retrieve-and-process-pcf-usage-data
 
-    - task: prep-success-notification-email-text
+    - task: prep-notification-email-text
       file: pipeline-scripts/ci/tasks/prepare-email.yml
 
     - task: feed-report-data-into-billing-system
@@ -147,13 +147,15 @@ jobs:
 
     - put: send-email
       params:
-        to: {{email-to}}
+        to: [ {{email-to}} ]
         subject: ./email-text/email-subject.txt
         body: ./email-text/email-body.txt
+        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
 
     on_failure:
       put: send-email
       params:
-        to: {{email-to}}
+        to: [ {{email-to}} ]
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
+        PCF_DEPLOY_NAME: {{pcf-deploy-name}}

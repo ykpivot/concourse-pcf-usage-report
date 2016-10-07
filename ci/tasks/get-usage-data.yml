@@ -19,9 +19,3 @@ run:
   - -exc
   - |
     node pipeline-scripts/scripts/get-usage-data.js
-
-# params:
-#   PCF_API_ENDPOINT:
-#   PCF_APPS_DOMAIN:
-#   SYS_ADMIN_USER:
-#   SYS_ADMIN_PASSWORD:

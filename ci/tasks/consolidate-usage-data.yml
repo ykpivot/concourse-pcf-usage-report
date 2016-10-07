@@ -21,8 +21,3 @@ run:
   - |
     node ./pipeline-scripts/scripts/consolidate-usage-data.js
     ls -la ./orgs-usage-consolidated
-# params:
-#   PCF_API_ENDPOINT:
-#   PCF_APPS_DOMAIN:
-#   SYS_ADMIN_USER:
-#   SYS_ADMIN_PASSWORD:
