@@ -2,11 +2,11 @@
 
 # PCF Usage Report producer - a Concourse pipeline sample  
 
-Pivotal Cloud Foundry provides a set of [application usage collection APIs](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli) that can be used to retrieve and compile applications and services usage of all organizations and spaces defined in a deployment.  
+Pivotal Cloud Foundry (PCF) provides a set of [accounting report APIs](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli) that can be used to retrieve and compile applications and services usage data of all organizations and spaces of a PCF deployment.  
 
-This sample Concourse pipeline leverages the [PCF app usage API](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli) along with the standard open source [Cloud Foundry APIs](https://apidocs.cloudfoundry.org/) to collect and consolidate a PCF usage report in JSON format.  
+This sample Concourse pipeline leverages the [PCF accounting report API](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli) along with the standard open source [Cloud Foundry APIs](https://apidocs.cloudfoundry.org/) to collect usage data for all organizations in a PCF deployment and consolidate it into a single output report.  
 
-The pipeline uses Node.js scripts under-the-covers and can be easily tweaked and customized for your organization needs in terms of how the report is built and results calculated.
+The pipeline's scripts can be easily tweaked and customized for each deployment's needs in terms of how the report is built and results calculated (see section _"Customizing the pipeline"_ below).
 
 A placeholder step is provided for the produced JSON report to be fed into a billing system.
 
@@ -15,11 +15,11 @@ A placeholder step is provided for the produced JSON report to be fed into a bil
 ![PCF Usage Report producer pipeline screenshot](https://github.com/pivotalservices/concourse-pcf-usage-report/raw/master/common/images/pipeline_annotated.png)
 
 1. The pipeline is automatically triggered by a time resource (e.g. once a month).  
-   Pipeline tasks and scripts are retrieved from a git repository  
+   Pipeline tasks and scripts are retrieved from a git repository.  
 
 2. Usage data and quota information is retrieved from the PCF deployment:  
    - Organization, space, applications, services and buildpack information, along with memory and space quotas are retrieved using [Cloud Foundry APIs](https://apidocs.cloudfoundry.org/)  
-   - Applications and services usage data is retrieved using [PCF app usage API](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli)  
+   - Applications and services usage data is retrieved using [PCF accounting report API](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli)  
    The collect data is then processed and consolidated into a single output JSON report file (see object schema further below).
    If an error occurs in this step, a notification email is sent to the appropriate recipients (configurable).
 
@@ -67,11 +67,11 @@ _```email-to```:_ the list of comma separated destination emails without encodin
 3. Configure the sample pipeline in Concourse with the following commands:  
    __fly -t <your-concourse-alias> set-pipeline -p pcf-usage-pipeline -c ci/pipeline/pcf-usage-report-simple.yml -l ci/pipeline/credentials.yml__  
 
-4. Access to the Concourse web interface, click on the list of pipelines, un-pause the _pcf-usage-pipeline_ and then click on its link to visualize its pipeline diagram  
+4. Access to the Concourse web interface, click on the list of pipelines, un-pause the ```pcf-usage-pipeline``` and then click on its link to visualize its pipeline diagram  
 
 5. To execute the pipeline, click on the ```retrieve-and-process-pcf-usage-data``` job and then click on the ```+``` sign to execute the pipeline.
 
-The recipients listed you your ```email-to``` parameter should receive an email shortly after the pipeline is run successfully.  
+If the pipeline jobs run successfully, then the produced JSON report will be saved to the targeted file repository and an email will be sent to the recipients listed in the ```email-to``` configuration parameter.  
 
 ---
 ### Customizing the pipeline
@@ -80,7 +80,7 @@ The recipients listed you your ```email-to``` parameter should receive an email 
   The time resource that automatically triggers the pipeline is commented out/disable in the sample code.  
   In order to have it enabled, remove the comments of the two lines that will enable the resource in the pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L46)) and repeat step 3 of the pipeline setup instructions above.
 
-- **Customize the time range of the report**
+- **Customize the time range of the report**  
   By default, the time range set by the report is the last month's initial and end dates.  
   In order to change it, look for task ```define-report-time-range``` of pipeline definition file ( [ci/pipeline/pcf-usage-report-simple.yml](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/ci/pipeline/pcf-usage-report-simple.yml#L71)) and change the two line of bash scripts that calculate the initial and end dates to be used by the pipeline scripts.  
   The sample provides a commented out code to set those two dates to be the beginning of the current month until the current date (see below).   
@@ -91,7 +91,7 @@ The recipients listed you your ```email-to``` parameter should receive an email 
   ```
 
 - **Skip the 'system' or any other organization in the report**  
-  You can update script [get-usage-data.js](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/scripts/get-usage-data.js) to remove any undesired organization from the usage report. You just need to simply include a surrounding **if** statement to method ```cfGetOrgUsage()```, like this:  
+  You can update script [get-usage-data.js](https://github.com/pivotalservices/concourse-pcf-usage-report/blob/master/scripts/get-usage-data.js) to remove any undesired organization from the usage report. You just need to include a surrounding **if** statement to method ```cfGetOrgUsage()```, like this:  
   ```  
   function cfGetOrgUsage(orgIndex) {
     var current_org_object=orgsUsageObject.resources[orgIndex];
@@ -110,15 +110,15 @@ The recipients listed you your ```email-to``` parameter should receive an email 
   }
   ```  
 
-- **Save the produced report to an artifact repository or to another file server***  
+- **Save the produced report to an artifact repository or to another file server**  
   You can replace the S3 bucket resource used in the sample pipeline with another resource that will allow you to do both a get and a put actions with it, such as the ones for [Artifactory](https://github.com/mborges-pivotal/artifactory-resource), [FTP](https://github.com/aequitas/concourse-ftp-resource) or [git](https://github.com/concourse/git-resource).  
   The get action is required for the automatic detection of a new file saved to the repository by the __feed-report-into-billing-system__ pipeline job. The put, obviously, is required for the report file to be saved to the repository.  
 
 ---
 ### Potential improvements and extensions to the pipeline  
 
-- **Include pre-calculation of usage metrics in the output report**  
-  The usage report currently includes only total memory, total instances, total time and total GB of storage used. Additional fields could be calculated and added to Apps, Spaces, Orgs and main parent objects, such as average Gb of memory per hour, or average instances for the period, etc., depending on the charge model adopted by the PCF foundation owner.  
+- **Include additional pre-calculation of usage metrics in the output report**  
+  The usage report currently includes only total memory, total instances, total time and total GB of storage used. Additional fields could be calculated and added to Apps, Spaces, Orgs and main parent objects, such as average Gb of memory per hour, or average instances for the period, etc., depending on the charge-back model adopted by the PCF foundation owner.  
 
 - **Companion PCF Consumption Report Analysis web application**   
   The produced JSON report file could be fed to a web application that creates a dashboard for visualization of PCF Consumption Analysis and/or Charge Back Model What-If scenarios.  
@@ -139,7 +139,7 @@ The recipients listed you your ```email-to``` parameter should receive an email 
   "total_app_memory_used_in_mb": integer, // total MB of memory used in all orgs
   "total_disk_quota_in_mb": integer, // total of Disk space quota in all orgs
   "service_usages": [...], // array of consolidated service usages in all orgs
-  "buildpack_usages": {...} // consolidate list of buildpack instances in all orgs
+  "buildpack_usages": {...} // consolidated list of buildpack instances used in all orgs
   }
   "organizations": [    // array of organization objects and corresponding usage data
     {  // organization object
