@@ -123,9 +123,6 @@ If the pipeline jobs run successfully, then the produced JSON report will be sav
 - **Companion PCF Consumption Report Analysis web application**   
   The produced JSON report file could be fed to a web application that creates a dashboard for visualization of PCF Consumption Analysis and/or Charge Back Model What-If scenarios.  
 
-- **Create a Jenkins pipeline with underlying usage collections scripts**   
-  The scripts used in this sample Concourse pipeline could be also wrapped within a Jenkins build. The triggering mechanism and task output directories from Concourse would have to be adapted for it to work though.  
-
 
 ---
 ### JSON schema of the output usage report  

@@ -27,12 +27,11 @@ resources:
   type: email
   source:
     from: {{email-from}}
-
-- name: monthly-trigger
-  type: cron-resource
-  source:
-    location: "America/New_York"
-    expression: "0 6 1 * *"
+# - name: monthly-trigger
+#   type: cron-resource
+#   source:
+#     location: "America/New_York"
+#     expression: "0 6 1 * *"
     # trigger on the first day of each month at 6:00am ET
 
 jobs:
