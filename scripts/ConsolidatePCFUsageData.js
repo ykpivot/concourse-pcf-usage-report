@@ -13,7 +13,7 @@ ConsolidatePCFUsageData.prototype.execute = function() {
   this.reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
   this.outputFileName="./orgs-usage-consolidated/pcf-"+process.env.PCF_DEPLOY_NAME+"-usage-from-"+this.reportTimeRangeObject.USAGE_START_DATE+"-to-"+this.reportTimeRangeObject.USAGE_END_DATE+"_"+Math.floor(Date.now() / 1000)+".json";
   console.log("Consolidating Orgs Usage object from ["+this.inputFileName+"] into : "+this.outputFileName)
-  this.readUsageDataFile(inputFileName);
+  this.readUsageDataFile(this.inputFileName);
   this.initializeOutputObject();
   this.processAllOrganizations();
   this.saveConsolidatedObject();
