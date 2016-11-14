@@ -15,6 +15,7 @@ resources:
   source:
     branch: master
     uri: {{git-project-url}}
+    skip_ssl_verification: true
 - name: file-repository
   type: s3
   source:
