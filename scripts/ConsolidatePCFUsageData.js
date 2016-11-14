@@ -67,7 +67,7 @@ ConsolidatePCFUsageData.prototype.processOrganization = function(item) {
 
   // get org quota info
   orgObject.quota_plan={};
-  var quotaDefObject = this.findObjectByGuid(current_org_object.entity.quota_definition_guid,orgsUsageObject.quota_definitions);
+  var quotaDefObject = this.findObjectByGuid(current_org_object.entity.quota_definition_guid,this.orgsUsageObject.quota_definitions);
   if (quotaDefObject!=null) {
      orgObject.quota_plan = quotaDefObject.entity;
      orgObject.quota_plan.guid=current_org_object.entity.quota_definition_guid
@@ -120,7 +120,7 @@ ConsolidatePCFUsageData.prototype.processOrganization = function(item) {
         var buildpack_key=""
         if (newAppUsageObject.detected_buildpack_guid!=null){
           // get buildpack name
-          var buildpackObject=this.findObjectByGuid(newAppUsageObject.detected_buildpack_guid,orgsUsageObject.buildpacks);
+          var buildpackObject=this.findObjectByGuid(newAppUsageObject.detected_buildpack_guid,this.orgsUsageObject.buildpacks);
           if (buildpackObject!=null) {
             buildpack_key=buildpackObject.entity.name;
             newAppUsageObject.buildpack_name=buildpackObject.entity.name;
@@ -168,7 +168,7 @@ ConsolidatePCFUsageData.prototype.processOrganization = function(item) {
       newServiceUsageObject.plan_guid=current_svcusage_object.service_plan_guid;
       newServiceUsageObject.plan_name=current_svcusage_object.service_plan_name;
       newServiceUsageObject.duration_in_seconds=current_svcusage_object.duration_in_seconds;
-      var servicePlanObject=this.findObjectByGuid(newServiceUsageObject.plan_guid,orgsUsageObject.service_plans);
+      var servicePlanObject=this.findObjectByGuid(newServiceUsageObject.plan_guid,this.orgsUsageObject.service_plans);
       if (servicePlanObject!=null) {
         newServiceUsageObject.extra=servicePlanObject.entity.extra;
       }
@@ -193,19 +193,19 @@ ConsolidatePCFUsageData.prototype.processOrganization = function(item) {
   }
 
   // add org object to main output object
-  outputConsolidatedObject.organizations.push(orgObject);
+  this.outputConsolidatedObject.organizations.push(orgObject);
 
-  outputConsolidatedObject.total_app_instance_count+=orgObject.total_app_instance_count;
-  outputConsolidatedObject.total_app_memory_used_in_mb+=orgObject.total_app_memory_used_in_mb;
-  outputConsolidatedObject.total_disk_quota_in_mb+=orgObject.total_disk_quota_in_mb;
+  this.outputConsolidatedObject.total_app_instance_count+=orgObject.total_app_instance_count;
+  this.outputConsolidatedObject.total_app_memory_used_in_mb+=orgObject.total_app_memory_used_in_mb;
+  this.outputConsolidatedObject.total_disk_quota_in_mb+=orgObject.total_disk_quota_in_mb;
 
   // aggregate service usage from org object into main parent object
-  this.aggregateServicesUsage(orgObject.service_usages,outputConsolidatedObject.service_usages);
+  this.aggregateServicesUsage(orgObject.service_usages,this.outputConsolidatedObject.service_usages);
 
   // aggregate buildpacks usage from org object into global parent object
-  this.aggregateBuildpackUsage(orgObject.buildpack_usages,outputConsolidatedObject.buildpack_usages);
+  this.aggregateBuildpackUsage(orgObject.buildpack_usages,this.outputConsolidatedObject.buildpack_usages);
 
-  // outputConsolidatedObject.service_usages=[];
+  // this.outputConsolidatedObject.service_usages=[];
 
 };
 
