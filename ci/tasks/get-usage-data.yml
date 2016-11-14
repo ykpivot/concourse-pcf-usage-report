@@ -19,9 +19,3 @@ run:
   - -exc
   - |
     node pipeline-scripts/scripts/get-usage-data.js
-
-params:
-  PCF_API_ENDPOINT: https://api.run.haas-48.pez.pivotal.io
-  PCF_APPS_DOMAIN: run.haas-48.pez.pivotal.io
-  SYS_ADMIN_USER: admin
-  SYS_ADMIN_PASSWORD: d7a63fbdc7b8944a314c
