@@ -30,7 +30,7 @@ Charge Back strategies
 
 # 1. Fixed Plans
 
-- Pay weekly/monthly/yearly per allocation model 
+- Charge weekly/monthly/yearly per allocation model 
 - Controlled by [PCF Quota Plans for Orgs and Spaces](https://docs.cloudfoundry.org/adminguide/quota-plans.html). Example:  
 
 
@@ -41,7 +41,7 @@ Charge Back strategies
 | large |       100G  | 10G  | 1000   |    100  |  
 
   
-- Easier to to administer, automate and grow
+- Easier to administer, automate and grow
 - Consumers not forced to self police consumption costs
 - Platform team required to monitor a bit  
 _(Why do you want a 128 gig quota? Can we help?)_
@@ -63,7 +63,7 @@ _(Why do you want a 128 gig quota? Can we help?)_
 
 # 3. Combination of Fixed + Monitored
 - Offer fixed plans and quotas for Application Instances 
-- Charge for instances of select Services and/or Buildpacks
+- Charge for instances of select Services
 - Fixed plan for AI's simplifies model, though complexity of monitoring automation of pay-per-use instances remains
 
 ---
@@ -75,9 +75,13 @@ _(Why do you want a 128 gig quota? Can we help?)_
     `cf curl /v2/organizations`  
     
 - For each Org, get its corresponding quota details and pricing   
-    `cf curl /v2/quota_definitions/<quota_guid>`  
+    `cf curl
+    /v2/quota_definitions/<quota_guid>` 
+- Define pricing structure for each plan, e.g.  
+_trial: $X/month, small: $Y/month, large: $Z/month_
     
-- Build report of Orgs/Spaces and Quotas Charge Back
+    
+- Generate report/bill for charge back  of Orgs
 
 ---
 ![bg original](images/top-green-piv-bg.png)
@@ -131,7 +135,7 @@ $$OrgA_{usage} = ( X \cdot \sum_{GbRAM/hr}) +  (Y \cdot \sum_{GbDisk/hr}) + (\su
 # PCF Accounting Report API
 
 - [Documentation](http://docs.pivotal.io/pivotalcf/1-10/opsguide/accounting-report.html#cf-cli)
-- Collects applications and service usage information for each Org and persists it for 90 days (vs. 30 days from CF API events)
+- Collects applications and services usage information for each Org and persists it for 90 days (vs. 30 days from CF API events)
 - Very usefull to collect granular usage data for _Metered Services_: API endpoints: `/app_usages` and `/service_usages` 
 - Used by PCF Apps Manager - Accounting report
 - Can be used to create custom Org and Space usage reports
