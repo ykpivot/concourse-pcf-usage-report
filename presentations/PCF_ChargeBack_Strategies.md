@@ -23,7 +23,7 @@ Charge Back strategies
 
 1. Fixed Plans
 2. Metered services (Pay-Per-Use)
-3. Combination of Fixed + Metered
+3. Hybrid Fixed + Metered
 
 ---
 ![bg original](images/top-green-piv-bg.png)
@@ -31,7 +31,9 @@ Charge Back strategies
 # 1. Fixed Plans
 
 - Charge weekly/monthly/yearly per allocation model 
-- Controlled by [PCF Quota Plans for Orgs and Spaces](https://docs.cloudfoundry.org/adminguide/quota-plans.html). Example:  
+- Controlled by [PCF Quota Plans for Orgs and Spaces](https://docs.cloudfoundry.org/adminguide/quota-plans.html).  
+https://docs.cloudfoundry.org/adminguide/quota-plans.html  
+Example:  
 
 
 | Plan  | Total RAM | RAM per App | Routes  | Service Instances |  
@@ -44,7 +46,7 @@ Charge Back strategies
 - Easier to administer, automate and grow
 - Consumers not forced to self police consumption costs
 - Platform team required to monitor a bit  
-_(Why do you want a 128 gig quota? Can we help?)_
+_(e.g. Why do you want a 128 gig quota? Can we help?)_
 
 ---
 ![bg original](images/top-green-piv-bg.png)
@@ -61,7 +63,7 @@ _(Why do you want a 128 gig quota? Can we help?)_
 ---
 ![bg original](images/top-green-piv-bg.png)
 
-# 3. Combination of Fixed + Monitored
+# 3. Hybrid Fixed + Monitored
 - Offer fixed plans and quotas for Application Instances 
 - Charge for instances of select Services
 - Fixed plan for AI's simplifies model, though complexity of monitoring automation of pay-per-use instances remains
@@ -92,8 +94,8 @@ _trial: $X/month, small: $Y/month, large: $Z/month_
 
 - For each PCF Org/Space, for the week/month/year, get: 
   - Application Instances usage
-     - RAM allocated
-     - Disk allocated
+     - RAM consumption
+     - Disk consumption
      - Duration of instances (e.g. in seconds)  
 
   - Services Instances usage
@@ -117,24 +119,33 @@ _trial: $X/month, small: $Y/month, large: $Z/month_
 
 - Calculate and produce report/bill for each Org/Space, e.g.
 
-$$OrgA_{usage} = ( X \cdot \sum_{GbRAM/hr}) +  (Y \cdot \sum_{GbDisk/hr}) + (\sum_{AllServices/hr}...)$$ 
+$$Org_{usage} = ( X \cdot \sum_{GbRAM/hr}) +  (Y \cdot \sum_{GbDisk/hr}) + (\sum_{AllServices/hr}...)$$ 
 
 
 ---
 ![bg original](images/top-green-piv-bg.png)
 
 # APIs and Tools for Usage Data Collection
-  - [Cloud Foundry API - App Usage Events](https://docs.cloudfoundry.org/running/managing-cf/usage-events.html)
-  - [App usage firehose nozzle](https://github.com/pivotalservices/app-usage-nozzle)
-  - [Abacus](https://github.com/cloudfoundry-incubator/cf-abacus)
-  - [***PCF Accounting Report API***](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli)
+  - [**Cloud Foundry API - App Usage Events**](https://docs.cloudfoundry.org/running/managing-cf/usage-events.html)  
+https://docs.cloudfoundry.org/running/managing-cf/usage-events.html  
+
+  - [**PCF Accounting Report API**](http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli)  :star:  
+http://docs.pivotal.io/pivotalcf/1-8/opsguide/accounting-report.html#cf-cli
+
+  - [**App usage firehose nozzle**](https://github.com/pivotalservices/app-usage-nozzle)  
+https://github.com/pivotalservices/app-usage-nozzle  
+
+  - [**Abacus**](https://github.com/cloudfoundry-incubator/cf-abacus)  
+https://github.com/cloudfoundry-incubator/cf-abacus  
+
 
 ---
 ![bg original](images/top-green-piv-bg.png)
 
 # PCF Accounting Report API
 
-- [Documentation](http://docs.pivotal.io/pivotalcf/1-10/opsguide/accounting-report.html#cf-cli)
+- [Documentation](http://docs.pivotal.io/pivotalcf/1-10/opsguide/accounting-report.html#cf-cli)  
+http://docs.pivotal.io/pivotalcf/1-10/opsguide/accounting-report.html#cf-cli
 - Collects applications and services usage information for each Org and persists it for 90 days (vs. 30 days from CF API events)
 - Very usefull to collect granular usage data for _Metered Services_: API endpoints: `/app_usages` and `/service_usages` 
 - Used by PCF Apps Manager - Accounting report
@@ -145,7 +156,8 @@ $$OrgA_{usage} = ( X \cdot \sum_{GbRAM/hr}) +  (Y \cdot \sum_{GbDisk/hr}) + (\su
 # Example: Usage Report producer
 <div style="font-size: small;text-align: right;margin-top:-55px;margin-right:-20px; height:50px;">1/2</div>
 
-- [PCF Usage Report producer](https://github.com/pivotalservices/concourse-pcf-usage-report)
+- [**PCF Usage Report producer**](https://github.com/pivotalservices/concourse-pcf-usage-report)  
+https://github.com/pivotalservices/concourse-pcf-usage-report
 - Concourse CI pipeline that collects usage data for all Orgs 
 - Uses the PCF Accounting Report API
 - Consolidates a single JSON report containing App and Services usage information about all Orgs and Spaces
@@ -159,20 +171,19 @@ $$OrgA_{usage} = ( X \cdot \sum_{GbRAM/hr}) +  (Y \cdot \sum_{GbDisk/hr}) + (\su
 # Example: Usage Report producer
 <div style="font-size: small;text-align: right;margin-top:-55px;margin-right:-20px; height:50px;">2/2</div>
 
-- [Sample JSON output report](https://github.com/pivotalservices/concourse-pcf-usage-report#json-schema-of-the-output-usage-report)
+- [**Sample JSON output report**](https://github.com/pivotalservices/concourse-pcf-usage-report#json-schema-of-the-output-usage-report)  
+https://github.com/pivotalservices/concourse-pcf-usage-report#json-schema-of-the-output-usage-report
 ```
 {
   "start_date": "YYYY-MM-DD",   // report start date
   "end_date": "YYYY-MM-DD",     // report end date
   "total_app_instance_count": integer,
-  "total_app_memory_used_in_mb": integer,
-  "total_disk_quota_in_mb": integer, ...
+  "total_app_memory_used_in_mb": integer, ...
   "organizations": [    // array of organization objects
     {  // organization object
       "name": "string", ...
       "total_app_instance_count": integer,  
-      "total_app_memory_used_in_mb": integer,
-      "total_disk_quota_in_mb": integer, 
+      "total_app_memory_used_in_mb": integer, ...
       "spaces": [  // array of all spaces of this org
         { // space object
           "name": "string",  ...
