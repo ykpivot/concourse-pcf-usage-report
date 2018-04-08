@@ -17,7 +17,7 @@ GetPCFUsageData.prototype.execute = function() {
 };
 
 GetPCFUsageData.prototype.cfLogin = function() {
-  var cmd_login = 'cf api '+process.env.PCF_API_ENDPOINT+' --skip-ssl-validation && cf login -u '+process.env.SYS_ADMIN_USER+' -p '+process.env.SYS_ADMIN_PASSWORD+' -o "system" -s "system"';
+  var cmd_login = 'cf api '+process.env.PCF_API_ENDPOINT+' --skip-ssl-validation && cf login -u '+process.env.SYS_ADMIN_USER+' -p '+process.env.SYS_ADMIN_PASSWORD+' -o '+process.env.PCF_ORG+' -s '+process.env.PCF_SPACE;
   console.log("Issuing cf api and login commands");
   var currentGetPCFUsageDataObject = this;
   exec(cmd_login, function(error, stdout, stderr) {
@@ -71,7 +71,7 @@ GetPCFUsageData.prototype.cfGetServices = function() {
   var cf_cmd = 'cf curl /v2/services';
   console.log("Retrieving services list");
   var currentGetPCFUsageDataObject = this;
-  exec(cf_cmd, function(error, stdout, stderr) {
+  exec(cf_cmd, {maxBuffer: 1024 * 1024}, function(error, stdout, stderr) {
     if (! currentGetPCFUsageDataObject.execError("cfGetServices",error,stderr)) {
       var parsedObject=JSON.parse(stdout, 'utf8');
       currentGetPCFUsageDataObject.orgsUsageObject.services=parsedObject;
