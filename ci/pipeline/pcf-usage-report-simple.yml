@@ -86,6 +86,8 @@ jobs:
         PCF_APPS_DOMAIN: {{pcf-apps-domain}}
         SYS_ADMIN_USER: {{pcf-sys-admin-user}}
         SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+        PCF_ORG: {{pcf-org}}
+        PCF_SPACE: {{pcf-space}}
 
     - task: consolidate-usage-data
       file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
