@@ -53,8 +53,8 @@ Here is how you can set up the pipeline on your own Concourse server:
   .  
 _```git-project-url```:_ the URL of the git repository containing the pipeline scripts  
 _```pcf-api-endpoint```:_ targeted PCF API endpoint (e.g. ```https://api.run.mydomain.com```)  
-_```pcf-apps-domain```:_ targeted PCF applications domain (e.g. ```run.mydomain.com```)   
-_```pcf-sys-admin-user```:_ PCF admin user ID to login to cf API (e.g. ```admin```)   
+_```pcf-apps-domain```:_ domain which usage report application runs in. Use system admin for PCF 2.0+ (e.g. ```system.mydomain.com```)  
+_```pcf-sys-admin-user```:_ PCF admin user ID to login to cf API (e.g. ```admin```)  
 _```pcf-sys-admin-user-password```:_ password of PCF admin user above  
 _```pcf-deploy-name```:_ ID or label for the targeted PCF deployment (e.g. ```production```)   
 _```s3-bucket```:_ ID of the AWS S3 bucket to upload the usage report to (e.g. ```mys3bucket```)   
