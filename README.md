@@ -49,11 +49,11 @@ Here is how you can set up the pipeline on your own Concourse server:
   * Make a copy of the sample credentials file  
   __cp ci/pipeline/credentials.yml.sample ci/pipeline/credentials.yml__  
 
-  * Edit _ci/pipeline/credentials.yml_ and fill out all the required credentials:  
+  * Edit _ci/pipeline/credentials.yml_ and fill out all the required credentials. If secrets for Concourse pipelines are kept in CredHub or Vault, then the companion script _ci/pipeline/bootstrap_secrets_params.sh_ could be used to bootstrap the parameters below with the credentials management software.  
   .  
 _```git-project-url```:_ the URL of the git repository containing the pipeline scripts  
 _```pcf-api-endpoint```:_ targeted PCF API endpoint (e.g. ```https://api.run.mydomain.com```)  
-_```pcf-apps-domain```:_ domain which usage report application runs in. Use system admin for PCF 2.0+ (e.g. ```system.mydomain.com```)  
+_```pcf-apps-domain```:_ domain which usage report application runs in. Use PCF system domain for PCF 2.0+ (e.g. ```system.mydomain.com```)  
 _```pcf-sys-admin-user```:_ PCF admin user ID to login to cf API (e.g. ```admin```)  
 _```pcf-sys-admin-user-password```:_ password of PCF admin user above  
 _```pcf-deploy-name```:_ ID or label for the targeted PCF deployment (e.g. ```production```)   
