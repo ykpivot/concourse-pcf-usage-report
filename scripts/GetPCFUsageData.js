@@ -131,7 +131,7 @@ GetPCFUsageData.prototype.cfGetOrgUsage = function(orgIndex) {
 };
 
 GetPCFUsageData.prototype.cfGetOrgSpaces = function(orgIndex,orgGuid) {
-  console.log("Getting all Spaces for the org")
+  console.log("Getting all Spaces for the org");
   var cf_cmd = 'cf curl /v2/organizations/'+orgGuid+'/spaces';
   var currentGetPCFUsageDataObject = this;
   exec(cf_cmd, function(error, stdout, stderr) {
@@ -146,8 +146,8 @@ GetPCFUsageData.prototype.cfGetOrgSpaces = function(orgIndex,orgGuid) {
 };
 
 GetPCFUsageData.prototype.cfGetOrgServicesUsage = function(orgIndex,orgGuid) {
-  console.log("Getting Services usage for the org")
   var cf_cmd = 'curl "https://app-usage.'+process.env.PCF_APPS_DOMAIN+'/organizations/'+orgGuid+'/service_usages?start='+this.reportTimeRangeObject.USAGE_START_DATE+'&end='+this.reportTimeRangeObject.USAGE_END_DATE+'" -k -H "authorization: `cf oauth-token`"';
+  console.log("Getting Services usage for the org: " + cf_cmd);
   var currentGetPCFUsageDataObject = this;
   exec(cf_cmd, function(error, stdout, stderr) {
     if (! currentGetPCFUsageDataObject.execError("cfGetOrgServicesUsage",error,stderr)) {
