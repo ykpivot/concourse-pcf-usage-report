@@ -87,7 +87,7 @@ GetPCFUsageData.prototype.cfGetUsageData = function() {
 
   for(let orgGuid in organizationMap) {
     const cmdServiceUsage = 'curl "https://app-usage.'
-      + this.pcfAppDomain
+      + this.pcfAppDmain
       + '/organizations/'
       + orgGuid
       + '/service_usages?start='
