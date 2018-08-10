@@ -95,72 +95,9 @@ jobs:
         attachments:
           - ./orgs-usage-consolidated/*.json
 
-#    - put: file-repository
-#      params:
-#        file: ./orgs-usage-consolidated/*.json
-#        acl: public-read
-
     on_failure:
       put: send-email
       params:
         to: [ {{email-to}} ]
         subject: ./email-text/email-subject-failure.txt
         body: ./email-text/email-body-failure.txt
-
-
-#- name: feed-report-into-billing-system
-#  serial: true
-#  public: true
-#  plan:
-#  - do:
-#    - get: pipeline-scripts
-#      trigger: false
-#    - get: file-repository
-#      trigger: true
-#      passed:
-#      - retrieve-and-process-pcf-usage-data
-#
-#    - task: prep-notification-email-text
-#      file: pipeline-scripts/ci/tasks/prepare-email.yml
-#      params:
-#        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
-#
-#    - task: feed-report-data-into-billing-system
-#      config:
-#        platform: linux
-#        image_resource:
-#          type: docker-image
-#          source:
-#            repository: pivotalservices/pcf-usage-tools
-#            tag: "latest"
-#        inputs:
-#          - name: pipeline-scripts
-#          - name: file-repository
-#        run:
-#          path: sh
-#          args:
-#          - -exc
-#          - |
-#            #!/bin/bash
-#            set -e
-#            echo "This is a place holder for the code to read the report file from the file repository and feed it to a billing system"
-#            echo "JSON Report file URL from the repository:"
-#            cat ./file-repository/url
-#            echo "Report file version(timestamp of creation in seconds):"
-#            cat ./file-repository/version
-#            echo "File list available to be used by this job/task:"
-#            ls -la file-repository
-#
-#
-#    - put: send-email
-#      params:
-#        to: [ {{email-to}} ]
-#        subject: ./email-text/email-subject.txt
-#        body: ./email-text/email-body.txt
-#
-#    on_failure:
-#      put: send-email
-#      params:
-#        to: [ {{email-to}} ]
-#        subject: ./email-text/email-subject-failure.txt
-#        body: ./email-text/email-body-failure.txt
