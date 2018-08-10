@@ -1,29 +1,29 @@
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 
-function GetPCFUsageData() {
+function GetPCFServiceUsageData() {
 }
 
-GetPCFUsageData.prototype.OUTPUT_DIR_NAME="";
-GetPCFUsageData.prototype.ORGS_USAGE_FILE="";
-GetPCFUsageData.prototype.reportTimeRangeObject={};
-// GetPCFUsageData.prototype.pcfAppDomain = 'sys.lsilva01.c0.pivotal.io';
-GetPCFUsageData.prototype.pcfApiEndPoint = process.env.PCF_API_ENDPOINT;
-GetPCFUsageData.prototype.pcfAppDmain = process.env.PCF_APPS_DOMAIN;
-GetPCFUsageData.prototype.sysAdminUser = process.env.SYS_ADMIN_USER;
-GetPCFUsageData.prototype.sysAdminPassword = process.env.SYS_ADMIN_PASSWORD;
-GetPCFUsageData.prototype.pcfOrg = process.env.PCF_ORG;
-GetPCFUsageData.prototype.pcfSpace = process.env.PCF_SPACE;
+GetPCFServiceUsageData.prototype.OUTPUT_DIR_NAME = "";
+GetPCFServiceUsageData.prototype.ORGS_USAGE_FILE = "";
+GetPCFServiceUsageData.prototype.reportTimeRangeObject = {};
+// GetPCFServiceUsageData.prototype.pcfAppDomain = 'sys.lsilva01.c0.pivotal.io';
+GetPCFServiceUsageData.prototype.pcfApiEndPoint = process.env.PCF_API_ENDPOINT;
+GetPCFServiceUsageData.prototype.pcfAppDmain = process.env.PCF_APPS_DOMAIN;
+GetPCFServiceUsageData.prototype.sysAdminUser = process.env.SYS_ADMIN_USER;
+GetPCFServiceUsageData.prototype.sysAdminPassword = process.env.SYS_ADMIN_PASSWORD;
+GetPCFServiceUsageData.prototype.pcfOrg = process.env.PCF_ORG;
+GetPCFServiceUsageData.prototype.pcfSpace = process.env.PCF_SPACE;
 
-GetPCFUsageData.prototype.execute = function() {
-  this.OUTPUT_DIR_NAME = "orgs-usage";
-  this.ORGS_USAGE_FILE = "./" + this.OUTPUT_DIR_NAME + "/pcf-orgs-usage.json";
+GetPCFServiceUsageData.prototype.execute = function() {
+  this.OUTPUT_DIR_NAME = "service-instance-usage";
+  this.ORGS_USAGE_FILE = "./" + this.OUTPUT_DIR_NAME + "/pcf-service-instance-usage.json";
   this.reportTimeRangeObject = JSON.parse(fs.readFileSync("./report-time-range/report-time-range.json", 'utf8'));
   this.cfLogin();
   this.cfGetUsageData();
 };
 
-GetPCFUsageData.prototype.cfLogin = function() {
+GetPCFServiceUsageData.prototype.cfLogin = function() {
   const cmdLogin = 'cf api '
     + this.pcfApiEndPoint
     + ' --skip-ssl-validation && cf login -u '
@@ -39,7 +39,7 @@ GetPCFUsageData.prototype.cfLogin = function() {
   execSync(cmdLogin);
 };
 
-GetPCFUsageData.prototype.cfGetUsageData = function() {
+GetPCFServiceUsageData.prototype.cfGetUsageData = function() {
   // 1. Get service broker
   const cmdServiceBroker = 'cf curl /v2/service_brokers?q=name:crunchy-postgresql-odb';
   console.log('Getting service broker: ', cmdServiceBroker);
@@ -150,4 +150,4 @@ GetPCFUsageData.prototype.cfGetUsageData = function() {
   fs.writeFileSync(this.ORGS_USAGE_FILE, JSON.stringify(serviceUsageMap, null, 2) , 'utf-8');
 };
 
-module.exports = GetPCFUsageData;
+module.exports = GetPCFServiceUsageData;

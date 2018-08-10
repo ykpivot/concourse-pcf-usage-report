@@ -2,7 +2,7 @@ var chai = require('chai');
 var expect = chai.expect
   , should = chai.should();
 
-var GetPCFUsageData = require(__dirname+'/../GetPCFUsageData.js');
+var GetPCFUsageData = require(__dirname+'/../GetPCFServiceUsageData.js');
 
 describe('GetPCFUsageData Unit tests', function() {
 

@@ -11,7 +11,7 @@ inputs:
   - name: pipeline-scripts
   - name: report-time-range
 outputs:
-  - name: orgs-usage
+  - name: service-instance-usage
 
 run:
   path: sh

@@ -1,5 +1,5 @@
-var GetPCFUsageData = require(__dirname+'/GetPCFUsageData.js');
+const GetPCFServiceUsageData = require(__dirname + '/GetPCFServiceUsageData.js');
 
-var getPCFUsageData = new GetPCFUsageData();
+const getPCFServiceUsageData = new GetPCFServiceUsageData();
 
-getPCFUsageData.execute();
+getPCFServiceUsageData.execute();
