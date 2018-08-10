@@ -5,3 +5,4 @@ fly
 .DS*
 node_modules/
 json-test/
+.idea/
