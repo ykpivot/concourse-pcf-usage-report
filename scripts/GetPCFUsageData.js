@@ -2,12 +2,13 @@ const fs = require('fs');
 const execSync = require('child_process').execSync;
 
 function GetPCFUsageData() {
-};
+}
 
 GetPCFUsageData.prototype.OUTPUT_DIR_NAME="";
 GetPCFUsageData.prototype.ORGS_USAGE_FILE="";
 GetPCFUsageData.prototype.reportTimeRangeObject={};
 // GetPCFUsageData.prototype.pcfAppDomain = 'sys.lsilva01.c0.pivotal.io';
+GetPCFUsageData.prototype.pcfApiEndPoint = process.env.PCF_API_ENDPOINT;
 GetPCFUsageData.prototype.pcfAppDmain = process.env.PCF_APPS_DOMAIN;
 GetPCFUsageData.prototype.sysAdminUser = process.env.SYS_ADMIN_USER;
 GetPCFUsageData.prototype.sysAdminPassword = process.env.SYS_ADMIN_PASSWORD;
@@ -24,7 +25,7 @@ GetPCFUsageData.prototype.execute = function() {
 
 GetPCFUsageData.prototype.cfLogin = function() {
   const cmdLogin = 'cf api '
-    + this.pcfAppDmain
+    + this.pcfApiEndPoint
     + ' --skip-ssl-validation && cf login -u '
     + this.sysAdminUser
     + ' -p '
