@@ -82,11 +82,6 @@ jobs:
         PCF_ORG: {{pcf-org}}
         PCF_SPACE: {{pcf-space}}
 
-    - task: consolidate-usage-data
-      file: pipeline-scripts/ci/tasks/consolidate-usage-data.yml
-      params:
-        PCF_DEPLOY_NAME: {{pcf-deploy-name}}
-
     - put: send-email
       params:
         to: [ {{email-to}} ]
