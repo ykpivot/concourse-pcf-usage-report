@@ -1,0 +1,57 @@
+---
+resource_types:
+- name: cron-resource
+  type: docker-image
+  source:
+    repository: cftoolsmiths/cron-test
+- name: email
+  type: docker-image
+  source:
+    repository: mdomke/concourse-email-resource
+
+resources:
+- name: pipeline-scripts
+  type: git
+  source:
+    branch: master
+    uri: {{git-project-url}}
+    skip_ssl_verification: true
+
+- name: send-email
+  type: email
+  source:
+    from: {{email-from}}
+
+jobs:
+- name: backup-database
+  serial: true
+  public: true
+  plan:
+  - do:
+    - get: pipeline-scripts
+      trigger: false
+
+    - task: backup-database
+      file: pipeline-scripts/ci/tasks/backup-database.yml
+      params:
+        PCF_API_ENDPOINT: {{pcf-api-endpoint}}
+        PCF_APPS_DOMAIN: {{pcf-apps-domain}}
+        SYS_ADMIN_USER: {{pcf-sys-admin-user}}
+        SYS_ADMIN_PASSWORD: {{pcf-sys-admin-user-password}}
+        PCF_ORG: {{pcf-org}}
+        PCF_SPACE: {{pcf-space}}
+
+    - put: send-email
+      params:
+        to: [ {{email-to}} ]
+        subject_text: "PCF Usage Report"
+        body_text: "Here is your report."
+        attachments:
+          - ./service-instance-usage/*.json
+
+    on_failure:
+      put: send-email
+      params:
+        to: [ {{email-to}} ]
+        subject: ./email-text/email-subject-failure.txt
+        body: ./email-text/email-body-failure.txt

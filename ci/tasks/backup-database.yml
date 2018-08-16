@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: pivotalservices/pgdump
+    tag: "latest"
+
+inputs:
+  - name: pipeline-scripts
+outputs:
+  - name: service-instance-usage
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    node pipeline-scripts/scripts/backup-database.js
